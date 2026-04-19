@@ -3,16 +3,7 @@ import { SidebarContext } from "../context/SidebarContext";
 import Sidebar, { MobileTopBar } from "./Sidebar";
 import "../components/Sidebar.css";
 
-/**
- * AppLayout — wraps authenticated pages with the sidebar + main content area.
- *
- * Usage:
- *   <AppLayout>
- *     <Groups />
- *   </AppLayout>
- *
- * The sidebar is pulled from SidebarContext (already aware of collapsed state).
- */
+
 const AppLayout = ({ children }) => {
   const { collapsed } = useContext(SidebarContext);
 
