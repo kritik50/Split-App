@@ -1,0 +1,136 @@
+/* ─── Expense Card ────────────────────────────────────────────── */
+
+.ec {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 20px 22px;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--t-mid);
+  animation: slideUp 0.4s var(--t-spring) backwards;
+  cursor: default;
+}
+
+.ec:nth-child(1) { animation-delay: 0.04s; }
+.ec:nth-child(2) { animation-delay: 0.08s; }
+.ec:nth-child(3) { animation-delay: 0.12s; }
+.ec:nth-child(4) { animation-delay: 0.16s; }
+.ec:nth-child(5) { animation-delay: 0.20s; }
+
+/* Left accent */
+.ec::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  width: 3px; height: 100%;
+  background: var(--brand);
+  opacity: 0.5;
+  border-radius: 3px 0 0 3px;
+  transition: opacity var(--t-fast);
+}
+
+.ec:hover {
+  border-color: var(--border-md);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.ec:hover::before { opacity: 1; }
+
+/* ── Top row ─────────────────────────────────────────────────── */
+.ec__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.ec__left { min-width: 0; }
+
+.ec__title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ec__paid-by {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--green);
+  font-weight: 600;
+  background: var(--green-soft);
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+}
+
+.ec__paid-by::before {
+  content: '✓';
+  font-size: 0.75rem;
+}
+
+.ec__amount {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-1);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ── Date ────────────────────────────────────────────────────── */
+.ec__date {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  margin-top: 10px;
+}
+
+/* ── Splits ──────────────────────────────────────────────────── */
+.ec__splits {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border-md);
+}
+
+.ec__splits-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.ec__splits-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ec__split-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  font-size: 0.83rem;
+  transition: background var(--t-fast);
+}
+.ec__split-row:hover { background: var(--surface-3); }
+
+.ec__split-name { color: var(--text-2); }
+
+.ec__split-amount {
+  font-weight: 700;
+  color: var(--red);
+}

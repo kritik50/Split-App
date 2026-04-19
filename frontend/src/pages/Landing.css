@@ -1,0 +1,199 @@
+/* ─── Landing Page ───────────────────────────────────────────── */
+
+.landing {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: var(--canvas);
+}
+
+/* Background */
+.landing__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.landing__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+}
+
+.landing__orb--1 {
+  width: 60vw; height: 60vw;
+  max-width: 700px; max-height: 700px;
+  top: -15%; left: -10%;
+  background: radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 70%);
+  animation: drift 18s ease-in-out infinite alternate;
+}
+
+.landing__orb--2 {
+  width: 50vw; height: 50vw;
+  max-width: 600px; max-height: 600px;
+  bottom: -20%; right: -5%;
+  background: radial-gradient(circle, rgba(16,185,129,0.16) 0%, transparent 70%);
+  animation: drift 24s ease-in-out infinite alternate-reverse;
+}
+
+.landing__orb--3 {
+  width: 30vw; height: 30vw;
+  max-width: 400px; max-height: 400px;
+  top: 40%; left: 40%;
+  background: radial-gradient(circle, rgba(244,63,94,0.08) 0%, transparent 70%);
+  animation: drift 15s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(40px, 40px) scale(1.08); }
+}
+
+/* Grid overlay */
+.landing__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, transparent 75%);
+}
+
+/* Content */
+.landing__content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 24px;
+  max-width: 680px;
+  animation: pageFadeIn 0.8s var(--t-spring) backwards;
+}
+
+/* Badge */
+.landing__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.25);
+  border-radius: var(--r-full);
+  color: var(--brand-hover);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+  backdrop-filter: blur(8px);
+}
+
+.landing__badge-dot {
+  width: 5px; height: 5px;
+  background: var(--brand);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--brand);
+}
+
+/* Hero */
+.landing__title {
+  font-family: var(--font-display);
+  font-size: clamp(4.5rem, 14vw, 9rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  margin-bottom: 28px;
+  background: linear-gradient(160deg, #ffffff 0%, #c7c9d9 50%, #8587a0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.landing__sub {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  color: var(--text-2);
+  line-height: 1.7;
+  margin-bottom: 48px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* CTA */
+.landing__cta {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.landing__btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 36px;
+  background: var(--brand);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: all var(--t-spring);
+  box-shadow: var(--shadow-brand);
+  letter-spacing: 0.01em;
+}
+
+.landing__btn-primary:hover {
+  background: var(--brand-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(99,102,241,0.5);
+}
+
+.landing__btn-primary:active {
+  transform: translateY(-1px);
+}
+
+.landing__btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 32px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: 1px solid var(--border-md);
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.landing__btn-ghost:hover {
+  border-color: var(--border-lg);
+  color: var(--text-1);
+  background: var(--surface);
+}
+
+/* Feature pills */
+.landing__features {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 56px;
+}
+
+.landing__feat {
+  padding: 8px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  font-size: 0.8rem;
+  color: var(--text-2);
+  font-weight: 500;
+}

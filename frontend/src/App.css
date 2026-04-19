@@ -1,0 +1,161 @@
+/* ═══════════════════════════════════════════════════════════════
+   SPLIT — Master Design System
+   Single source of truth for all tokens, utilities, and animations
+═══════════════════════════════════════════════════════════════ */
+
+/* ─── Design Tokens ─────────────────────────────────────────── */
+:root {
+
+  /* Canvas */
+  --canvas:       #08090d;
+  --surface:      #0e1117;
+  --surface-2:    #141720;
+  --surface-3:    #1a1f2e;
+  --overlay:      rgba(14, 17, 23, 0.96);
+
+  /* Borders */
+  --border:       rgba(255, 255, 255, 0.07);
+  --border-md:    rgba(255, 255, 255, 0.11);
+  --border-lg:    rgba(255, 255, 255, 0.18);
+
+  /* Text */
+  --text-1:       #f1f2f6;
+  --text-2:       #9da3b4;
+  --text-3:       #5c6278;
+  --text-inv:     #08090d;
+
+  /* Brand — Indigo/Violet */
+  --brand:        #6366f1;
+  --brand-hover:  #818cf8;
+  --brand-soft:   rgba(99, 102, 241, 0.12);
+  --brand-glow:   rgba(99, 102, 241, 0.35);
+
+  /* Accent — Emerald (positive) */
+  --green:        #10b981;
+  --green-soft:   rgba(16, 185, 129, 0.12);
+  --green-glow:   rgba(16, 185, 129, 0.3);
+
+  /* Danger — Red (owe) */
+  --red:          #f43f5e;
+  --red-soft:     rgba(244, 63, 94, 0.12);
+  --red-glow:     rgba(244, 63, 94, 0.3);
+
+  /* Warning — Amber */
+  --amber:        #f59e0b;
+  --amber-soft:   rgba(245, 158, 11, 0.12);
+
+  /* Fonts */
+  --font-ui:      'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Sora', 'Inter', sans-serif;
+
+  /* Spacing */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s7: 32px;
+  --s8: 40px;
+  --s9: 48px;
+  --s10: 64px;
+
+  /* Radii */
+  --r-sm:   8px;
+  --r-md:   12px;
+  --r-lg:   18px;
+  --r-xl:   24px;
+  --r-2xl:  32px;
+  --r-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.2);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.25);
+  --shadow-xl: 0 24px 64px rgba(0,0,0,0.6), 0 8px 20px rgba(0,0,0,0.3);
+  --shadow-brand: 0 8px 32px rgba(99, 102, 241, 0.25);
+  --shadow-green: 0 8px 32px rgba(16, 185, 129, 0.25);
+
+  /* Transitions */
+  --t-fast:   0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --t-mid:    0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --t-slow:   0.4s  cubic-bezier(0.4, 0, 0.2, 1);
+  --t-spring: 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* ─── Base Body ─────────────────────────────────────────────── */
+body {
+  background-color: var(--canvas);
+  color: var(--text-1);
+  font-family: var(--font-ui);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+}
+
+/* ─── Page Fade-in ──────────────────────────────────────────── */
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.93); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1);    opacity: 1; }
+  100% { transform: scale(1.6);  opacity: 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Skeleton loading ──────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--surface-3) 50%,
+    var(--surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--r-md);
+}
+
+/* ─── Utility: Visually-hidden (for accessibility) ───────────── */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
