@@ -1,26 +1,23 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from database import get_db
+from app.dependencies.auth import get_current_user
 from app.models.expense import Expense
-from app.models.expense_split import ExpenseSplit
+from app.models.group import Group
+from app.models.group_member import GroupMember
 from app.models.settlement import Settlement
 from app.models.user import User
-from app.dependencies.auth import get_current_user
-from fastapi import HTTPException
+from database import get_db
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-# ─────────────────────────────────────────────
-# SEARCH USER BY EMAIL (for Add Member modal)
-# ─────────────────────────────────────────────
 @router.get("/search")
 def search_user_by_email(
     email: str = Query(..., description="Email address to search for"),
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     user = db.query(User).filter(User.email == email.strip().lower()).first()
     if not user:
@@ -36,52 +33,63 @@ def search_user_by_email(
 @router.get("/activity")
 def get_user_activity(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
-    # 🔥 Fetch data
-    expenses = db.query(Expense).all()
-    settlements = db.query(Settlement).all()
+    memberships = (
+        db.query(GroupMember)
+        .filter(GroupMember.user_id == current_user.id)
+        .all()
+    )
+    group_ids = [membership.group_id for membership in memberships]
 
-    # 🧠 Get all user IDs
+    if not group_ids:
+        return []
+
+    expenses = db.query(Expense).filter(Expense.group_id.in_(group_ids)).all()
+    settlements = (
+        db.query(Settlement)
+        .filter(Settlement.group_id.in_(group_ids))
+        .all()
+    )
+
     user_ids = set()
+    for expense in expenses:
+        user_ids.add(expense.paid_by)
+    for settlement in settlements:
+        user_ids.add(settlement.paid_by)
+        user_ids.add(settlement.paid_to)
 
-    for e in expenses:
-        user_ids.add(e.paid_by)
+    users = db.query(User).filter(User.id.in_(user_ids)).all() if user_ids else []
+    user_map = {user.id: user.name for user in users}
 
-    for s in settlements:
-        user_ids.add(s.paid_by)
-        user_ids.add(s.paid_to)
-
-    users = db.query(User).filter(User.id.in_(user_ids)).all()
-    user_map = {u.id: u.name for u in users}
+    groups = db.query(Group).filter(Group.id.in_(group_ids)).all()
+    group_map = {group.id: group.name for group in groups}
 
     timeline = []
 
-    # 🔥 Add expenses
-    for e in expenses:
+    for expense in expenses:
         timeline.append({
             "type": "expense",
-            "id": e.id,
-            "group_id": e.group_id,
-            "paid_by": user_map.get(e.paid_by, "Unknown"),
-            "amount": round(e.amount, 2),
-            "notes": e.notes,
-            "created_at": e.created_at
+            "id": expense.id,
+            "group_id": expense.group_id,
+            "group_name": group_map.get(expense.group_id, "Group"),
+            "paid_by": user_map.get(expense.paid_by, "Unknown"),
+            "amount": round(expense.amount, 2),
+            "notes": expense.notes,
+            "created_at": expense.created_at,
         })
 
-    # 🔥 Add settlements
-    for s in settlements:
+    for settlement in settlements:
         timeline.append({
             "type": "settlement",
-            "id": s.id,
-            "group_id": s.group_id,
-            "paid_by": user_map.get(s.paid_by, "Unknown"),
-            "paid_to": user_map.get(s.paid_to, "Unknown"),
-            "amount": round(s.amount, 2),
-            "created_at": s.created_at
+            "id": settlement.id,
+            "group_id": settlement.group_id,
+            "group_name": group_map.get(settlement.group_id, "Group"),
+            "paid_by": user_map.get(settlement.paid_by, "Unknown"),
+            "paid_to": user_map.get(settlement.paid_to, "Unknown"),
+            "amount": round(settlement.amount, 2),
+            "created_at": settlement.created_at,
         })
 
-    # 🔥 Sort latest first
-    timeline.sort(key=lambda x: x["created_at"], reverse=True)
-
+    timeline.sort(key=lambda item: item["created_at"], reverse=True)
     return timeline

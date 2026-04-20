@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, IndianRupee, FileText, Users, Check } from "lucide-react";
 import { addExpense } from "../api/expenseApi";
 import { getGroupMembers } from "../api/groupApi";
+import { SidebarContext } from "../context/SidebarContext";
 import "./AddExpense.css";
 
 const getInitials = (name) => {
@@ -16,6 +17,7 @@ const getInitials = (name) => {
 const AddExpense = () => {
   const { id }     = useParams();
   const navigate   = useNavigate();
+  const { refresh } = useContext(SidebarContext);
 
   const [amount,          setAmount]          = useState("");
   const [description,     setDescription]     = useState("");
@@ -73,6 +75,7 @@ const AddExpense = () => {
         notes:    description.trim(),
         splits:   selectedMembers.map((userId) => ({ user_id: userId })),
       });
+      await refresh();
       navigate(`/group/${id}`);
     } catch (err) {
       const msg = err.response?.data?.detail || "Failed to add expense.";

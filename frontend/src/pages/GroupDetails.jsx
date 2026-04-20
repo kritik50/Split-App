@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Users, X, AlertCircle, UserPlus, ArrowRight } from "lucide-react";
 
@@ -10,6 +10,7 @@ import {
 } from "../api/groupApi";
 import { getExpensesByGroup } from "../api/expenseApi";
 import ExpenseCard from "../components/ExpenseCard";
+import { SidebarContext } from "../context/SidebarContext";
 import "./GroupDetails.css";
 
 const isValidEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
@@ -25,6 +26,7 @@ const getInitials = (name) => {
 const GroupDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { refresh } = useContext(SidebarContext);
 
   const [members,  setMembers]  = useState([]);
   const [summary,  setSummary]  = useState(null);
@@ -93,6 +95,7 @@ const GroupDetails = () => {
       await addMemberToGroup(id, trimmed);
       setEmail("");
       setShowModal(false);
+      await refresh();
       await fetchData();
     } catch (err) {
       setEmailError(

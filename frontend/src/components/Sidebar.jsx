@@ -180,8 +180,9 @@ const Sidebar = () => {
             <SidebarItem
               icon={Receipt}
               label="All Expenses"
-              to="/groups"
-              active={false}
+              to="/expenses"
+              active={path === "/expenses"}
+              badge={stats.total_expenses || undefined}
             />
 
             <SidebarItem

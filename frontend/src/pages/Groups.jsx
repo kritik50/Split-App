@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { Plus, ArrowRight, Trash2, X, Users } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getGroups, deleteGroup, createGroup } from "../api/groupApi";
+import { SidebarContext } from "../context/SidebarContext";
 import "./Groups.css";
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -108,6 +109,7 @@ const Groups = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const { refresh } = useContext(SidebarContext);
 
   // Open modal when sidebar navigates to /groups?modal=new
   useEffect(() => {
@@ -141,6 +143,7 @@ const Groups = () => {
       setDeletingId(groupId);
       await deleteGroup(groupId);
       setGroups((prev) => prev.filter((g) => g.id !== groupId));
+      refresh();
     } catch (err) {
       console.error("Delete error:", err);
       alert(err.response?.data?.detail || "Failed to delete group.");
@@ -152,6 +155,7 @@ const Groups = () => {
   const handleGroupCreated = (newGroup) => {
     setShowModal(false);
     setGroups((prev) => [newGroup, ...prev]);
+    refresh();
   };
 
   const getAvatar = (name) => {

@@ -1,6 +1,6 @@
 import os
+from pathlib import Path
 
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -14,7 +14,30 @@ from app.routes import test
 from app.routes import user as user_router
 from database import Base, engine
 
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
+
+
+def load_env_file():
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if load_dotenv is not None:
+        load_dotenv(dotenv_path=env_path)
+        return
+
+    if not env_path.exists():
+        return
+
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip())
+
+
+load_env_file()
 
 
 def get_allowed_origins():

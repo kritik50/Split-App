@@ -1,17 +1,15 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useContext } from "react";
 
-import Login        from "./pages/Login";
-import Register     from "./pages/Register";
 import Groups       from "./pages/Groups";
 import GroupDetails from "./pages/GroupDetails";
 // CreateGroup is now a modal inside Groups.jsx
 import AddExpense   from "./pages/AddExpense";
-import Navbar       from "./components/Navbar";
 import AppLayout    from "./components/AppLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Landing      from "./pages/Landing";
 import Auth         from "./pages/Auth";
+import AllExpenses  from "./pages/AllExpenses";
 
 import { AuthContext }      from "./context/AuthContext";
 import { SidebarProvider }  from "./context/SidebarContext";
@@ -30,9 +28,7 @@ function AppContent() {
     return null;
   }
 
-  // Show navbar only on public pages
-  // Show sidebar layout only on authenticated pages
-  const showNavbar  = isPublic;
+  // Public pages render without the shared navbar/sidebar shell.
   const showSidebar = !isPublic && !!user;
 
 
@@ -46,6 +42,7 @@ function AppContent() {
 
       {/* Protected — all wrapped in AppLayout via ProtectedRoute */}
       <Route path="/groups"           element={<ProtectedRoute><Groups /></ProtectedRoute>} />
+      <Route path="/expenses"         element={<ProtectedRoute><AllExpenses /></ProtectedRoute>} />
       <Route path="/group/:id"        element={<ProtectedRoute><GroupDetails /></ProtectedRoute>} />
       <Route path="/group/:id/add-expense" element={<ProtectedRoute><AddExpense /></ProtectedRoute>} />
       {/* /create-group removed — now a modal on the Groups page */}
@@ -57,9 +54,6 @@ function AppContent() {
 
   return (
     <>
-      {/* Public navbar (Landing / Auth) */}
-      {showNavbar && <Navbar />}
-
       {/* Authenticated layout: sidebar + content */}
       {showSidebar ? (
         <SidebarProvider>

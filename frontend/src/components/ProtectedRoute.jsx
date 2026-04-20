@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children }) => {
 
   // No valid user → redirect to login
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;
