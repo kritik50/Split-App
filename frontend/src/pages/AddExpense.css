@@ -353,6 +353,19 @@
   .ae__title { font-size: 1.2rem; }
   .ae__back span { display: none; }
   .ae__header-spacer { width: 44px; }
+  .ae__header {
+    gap: 10px;
+  }
+  .ae__payer-list,
+  .ae__split-types {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .ae__payer-chip,
+  .ae__split-type-btn {
+    justify-content: center;
+    width: 100%;
+  }
   .ae__member-row {
     flex-wrap: wrap;
   }

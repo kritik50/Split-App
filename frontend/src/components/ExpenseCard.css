@@ -134,3 +134,30 @@
   font-weight: 700;
   color: var(--red);
 }
+
+@media (max-width: 640px) {
+  .ec {
+    padding: 18px 16px;
+  }
+
+  .ec__top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ec__title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .ec__amount {
+    font-size: 1.3rem;
+  }
+
+  .ec__split-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

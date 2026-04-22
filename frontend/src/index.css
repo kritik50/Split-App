@@ -27,6 +27,11 @@ body {
   overflow-x: hidden;
 }
 
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
 #root {
   width: 100%;
   min-height: 100vh;
@@ -68,4 +73,10 @@ p { margin: 0; }
   outline: 2px solid rgba(99, 102, 241, 0.7);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 15px;
+  }
 }

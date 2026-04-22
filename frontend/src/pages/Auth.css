@@ -237,5 +237,20 @@
 }
 
 @media (max-width: 440px) {
-  .auth__card { padding: 32px 24px; }
+  .auth {
+    padding: 16px;
+  }
+
+  .auth__card {
+    padding: 28px 20px;
+    border-radius: var(--r-xl);
+  }
+
+  .auth__logo {
+    font-size: 1.55rem;
+  }
+
+  .auth__tabs {
+    margin-bottom: 22px;
+  }
 }

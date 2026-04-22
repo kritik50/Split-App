@@ -513,7 +513,7 @@
   .sidebar {
     transform: translateX(-100%);
     transition: transform var(--sb-transition), width var(--sb-transition);
-    width: 260px !important;   /* always full on mobile */
+    width: min(86vw, 320px) !important;   /* always full on mobile */
     z-index: 600;
     box-shadow: var(--shadow-xl);
   }
@@ -605,4 +605,18 @@
 @media (max-width: 768px) {
   .mobile-topbar { display: flex; }
   .app-layout__main { padding-top: 52px; }
+}
+
+@media (max-width: 420px) {
+  .sidebar__top {
+    padding-inline: 12px;
+  }
+
+  .sidebar__body {
+    padding-inline: 6px;
+  }
+
+  .mobile-topbar {
+    padding-inline: 12px;
+  }
 }

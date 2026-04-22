@@ -197,3 +197,48 @@
   color: var(--text-2);
   font-weight: 500;
 }
+
+@media (max-width: 640px) {
+  .landing {
+    align-items: flex-start;
+    padding: 48px 0 32px;
+  }
+
+  .landing__content {
+    padding: 24px 18px 32px;
+  }
+
+  .landing__badge {
+    margin-bottom: 22px;
+    font-size: 0.72rem;
+  }
+
+  .landing__title {
+    margin-bottom: 18px;
+  }
+
+  .landing__sub {
+    margin-bottom: 30px;
+    line-height: 1.55;
+  }
+
+  .landing__cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .landing__btn-primary,
+  .landing__btn-ghost {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .landing__features {
+    margin-top: 34px;
+  }
+
+  .landing__feat {
+    width: 100%;
+    text-align: center;
+  }
+}

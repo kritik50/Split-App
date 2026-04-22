@@ -315,6 +315,10 @@
 
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 640px) {
+  .groups__container {
+    padding: 28px 16px 64px;
+  }
+
   .groups__header {
     flex-direction: column;
     align-items: flex-start;
@@ -324,6 +328,12 @@
   .groups__create-btn { flex: 1; justify-content: center; }
   .groups__grid { grid-template-columns: 1fr; }
   .groups__stats { gap: 8px; }
+  .group-card {
+    padding: 18px;
+  }
+  .group-card__right {
+    align-self: flex-start;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════ */
