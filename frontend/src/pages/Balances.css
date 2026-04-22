@@ -1,0 +1,114 @@
+.balances-page {
+  min-height: 100%;
+  padding: 32px 24px 48px;
+}
+
+.balances-page__container {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.balances-page__header {
+  margin-bottom: 24px;
+}
+
+.balances-page__header h1 {
+  margin: 0 0 8px;
+}
+
+.balances-page__header p {
+  margin: 0;
+  color: var(--text-2);
+}
+
+.balances-page__list {
+  display: grid;
+  gap: 14px;
+}
+
+.balances-page__card,
+.balances-page__state {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.balances-page__card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+}
+
+.balances-page__group {
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.balances-page__card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.balances-page__side {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.balances-page__amount {
+  font-weight: 800;
+}
+
+.balances-page__amount--owe {
+  color: var(--red);
+}
+
+.balances-page__amount--get {
+  color: var(--green);
+}
+
+.balances-page__open {
+  border: 1px solid var(--border-md);
+  background: var(--surface-2);
+  color: var(--text-1);
+  border-radius: var(--r-full);
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.balances-page__state {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--text-2);
+}
+
+.balances-page__state--error {
+  color: var(--red);
+}
+
+.balances-page__skeleton {
+  height: 92px;
+}
+
+@media (max-width: 640px) {
+  .balances-page {
+    padding: 20px 16px 36px;
+  }
+
+  .balances-page__card,
+  .balances-page__side {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -13,6 +13,14 @@ from app.dependencies.auth import get_current_user
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 
 
+def _rounded_share(total, raw_values):
+    rounded = [round(value, 2) for value in raw_values]
+    diff = round(total - sum(rounded), 2)
+    if rounded:
+      rounded[-1] = round(rounded[-1] + diff, 2)
+    return rounded
+
+
 # 🔥 CREATE EXPENSE
 @router.post("/")
 def create_expense(
@@ -34,10 +42,51 @@ def create_expense(
     if data.amount <= 0:
         raise HTTPException(status_code=400, detail="Invalid amount")
 
-    # ✅ Create expense (backend auto-fills paid_by with current_user.id)
+    payer_id = data.paid_by or current_user.id
+
+    payer_member = db.query(GroupMember).filter(
+        GroupMember.group_id == data.group_id,
+        GroupMember.user_id == payer_id
+    ).first()
+
+    if not payer_member:
+        raise HTTPException(status_code=400, detail="Selected payer is not in this group")
+
+    split_type = (data.split_type or "equal").lower()
+    split_payloads = list(data.splits)
+
+    if split_type == "equal":
+        share_values = _rounded_share(
+            data.amount,
+            [data.amount / len(split_payloads)] * len(split_payloads)
+        )
+    elif split_type == "exact":
+        if any(split.amount is None or split.amount < 0 for split in split_payloads):
+            raise HTTPException(status_code=400, detail="Each selected member needs an exact amount")
+
+        total_split = round(sum(split.amount for split in split_payloads), 2)
+        if abs(total_split - round(data.amount, 2)) > 0.01:
+            raise HTTPException(status_code=400, detail="Exact split amounts must add up to the total")
+
+        share_values = [round(split.amount, 2) for split in split_payloads]
+    elif split_type == "percentage":
+        if any(split.percentage is None or split.percentage < 0 for split in split_payloads):
+            raise HTTPException(status_code=400, detail="Each selected member needs a percentage")
+
+        total_percentage = round(sum(split.percentage for split in split_payloads), 2)
+        if abs(total_percentage - 100) > 0.01:
+            raise HTTPException(status_code=400, detail="Percentages must add up to 100")
+
+        share_values = _rounded_share(
+            data.amount,
+            [(data.amount * split.percentage) / 100 for split in split_payloads]
+        )
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported split type")
+
     expense = Expense(
         group_id=data.group_id,
-        paid_by=current_user.id,
+        paid_by=payer_id,
         amount=data.amount,
         notes=data.notes
     )
@@ -46,22 +95,19 @@ def create_expense(
     db.commit()
     db.refresh(expense)
 
-    # ✅ Calculate per-person split
-    per_person = round(data.amount / len(data.splits), 2)
-
-    for s in data.splits:
+    for split_data, share_amount in zip(split_payloads, share_values):
         db.add(ExpenseSplit(
             expense_id=expense.id,
-            user_id=s.user_id,
-            amount=per_person
+            user_id=split_data.user_id,
+            amount=share_amount
         ))
 
         update_balance(
             db=db,
             group_id=expense.group_id,
-            payer_id=current_user.id,
-            participant_id=s.user_id,
-            amount=per_person
+            payer_id=payer_id,
+            participant_id=split_data.user_id,
+            amount=share_amount
         )
 
     db.commit()
@@ -99,6 +145,7 @@ def get_group_expenses(
             "group_id": e.group_id,
             "amount": e.amount,
             "paid_by": e.paid_by,
+            "split_type": "custom" if len({round(s.amount, 2) for s in e.splits}) > 1 else "equal",
             "description": e.notes,  # ✅ Maps notes → description for frontend
             "created_at": e.created_at.isoformat() if hasattr(e, 'created_at') and e.created_at else None,  # ✅ ADDED
             "splits": [

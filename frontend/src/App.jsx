@@ -10,6 +10,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Landing      from "./pages/Landing";
 import Auth         from "./pages/Auth";
 import AllExpenses  from "./pages/AllExpenses";
+import Balances     from "./pages/Balances";
+import Activity     from "./pages/Activity";
 
 import { AuthContext }      from "./context/AuthContext";
 import { SidebarProvider }  from "./context/SidebarContext";
@@ -43,6 +45,8 @@ function AppContent() {
       {/* Protected — all wrapped in AppLayout via ProtectedRoute */}
       <Route path="/groups"           element={<ProtectedRoute><Groups /></ProtectedRoute>} />
       <Route path="/expenses"         element={<ProtectedRoute><AllExpenses /></ProtectedRoute>} />
+      <Route path="/balances"         element={<ProtectedRoute><Balances /></ProtectedRoute>} />
+      <Route path="/activity"         element={<ProtectedRoute><Activity /></ProtectedRoute>} />
       <Route path="/group/:id"        element={<ProtectedRoute><GroupDetails /></ProtectedRoute>} />
       <Route path="/group/:id/add-expense" element={<ProtectedRoute><AddExpense /></ProtectedRoute>} />
       {/* /create-group removed — now a modal on the Groups page */}

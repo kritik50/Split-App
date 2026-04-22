@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.dependencies.auth import get_current_user
+from app.models.balance import Balance
 from app.models.expense import Expense
 from app.models.group import Group
 from app.models.group_member import GroupMember
@@ -93,3 +94,55 @@ def get_user_activity(
 
     timeline.sort(key=lambda item: item["created_at"], reverse=True)
     return timeline
+
+
+@router.get("/balances-summary")
+def get_balances_summary(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    balances = (
+        db.query(Balance)
+        .filter(
+            (Balance.user_owes_id == current_user.id) |
+            (Balance.user_gets_id == current_user.id)
+        )
+        .all()
+    )
+
+    if not balances:
+        return []
+
+    group_ids = {balance.group_id for balance in balances}
+    user_ids = set()
+    for balance in balances:
+        user_ids.add(balance.user_owes_id)
+        user_ids.add(balance.user_gets_id)
+
+    users = db.query(User).filter(User.id.in_(user_ids)).all()
+    user_map = {user.id: user for user in users}
+    groups = db.query(Group).filter(Group.id.in_(group_ids)).all()
+    group_map = {group.id: group.name for group in groups}
+
+    summary = []
+    for balance in balances:
+        if balance.user_owes_id == current_user.id:
+            counterparty_id = balance.user_gets_id
+            direction = "you_owe"
+        else:
+            counterparty_id = balance.user_owes_id
+            direction = "you_are_owed"
+
+        counterparty = user_map.get(counterparty_id)
+        summary.append({
+            "group_id": balance.group_id,
+            "group_name": group_map.get(balance.group_id, "Group"),
+            "amount": round(balance.amount, 2),
+            "direction": direction,
+            "counterparty_id": counterparty_id,
+            "counterparty_name": counterparty.name if counterparty else f"User {counterparty_id}",
+            "counterparty_email": counterparty.email if counterparty else "",
+        })
+
+    summary.sort(key=lambda item: (item["group_name"], item["direction"], item["counterparty_name"]))
+    return summary

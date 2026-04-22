@@ -124,6 +124,11 @@
   gap: 8px;
 }
 
+.gd__hint {
+  font-size: 0.82rem;
+  color: var(--text-3);
+}
+
 .gd__member-chip {
   display: inline-flex;
   align-items: center;
@@ -284,6 +289,12 @@
 /* ── Content Area ────────────────────────────────────────────── */
 .gd__content { animation: fadeIn 0.3s backwards; }
 
+.gd__balance-list,
+.gd__suggestions {
+  display: grid;
+  gap: 12px;
+}
+
 .gd__section-title {
   font-size: 0.75rem;
   font-weight: 700;
@@ -363,6 +374,62 @@
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--red);
+}
+
+.gd__settlement-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gd__settlement-caption {
+  color: var(--text-3);
+  font-size: 0.8rem;
+}
+
+.gd__settlement-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.gd__settle-btn {
+  border: 1px solid rgba(16,185,129,0.28);
+  background: var(--green-soft);
+  color: var(--green);
+  border-radius: var(--r-full);
+  padding: 8px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.gd__settle-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--green);
+}
+
+.gd__suggestion-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px 18px;
+  color: var(--text-2);
+}
+
+.gd__section-title--spaced {
+  margin-top: 22px;
+}
+
+.gd__settlement-note {
+  color: var(--text-3);
+  font-size: 0.82rem;
+  margin-bottom: 12px;
 }
 
 /* ── Loading ─────────────────────────────────────────────────── */
@@ -502,4 +569,13 @@
   .gd__actions { flex-direction: column; }
   .gd__tab-btn { min-width: 100px; padding: 10px 16px; }
   .gd__back span { display: none; }
+  .gd__settlement {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .gd__settlement-side,
+  .gd__suggestion-card {
+    width: 100%;
+    align-items: flex-start;
+  }
 }

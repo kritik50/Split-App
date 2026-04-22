@@ -188,15 +188,15 @@ const Sidebar = () => {
             <SidebarItem
               icon={ArrowLeftRight}
               label="Balances"
-              to="/groups"
-              active={false}
+              to="/balances"
+              active={path === "/balances"}
             />
 
             <SidebarItem
               icon={Activity}
               label="Activity"
-              to="/groups"
-              active={false}
+              to="/activity"
+              active={path === "/activity"}
             />
           </div>
 
