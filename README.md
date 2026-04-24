@@ -80,4 +80,4 @@ docker-compose up -d
 *(Ensure you update the `DATABASE_URL` in your backend `.env` file to point to the Postgres container).*
 
 ---
-Designed & Engineered with ❤️ by [Your Name / KP].
+Designed & Engineered with ❤️ by [Kritikinchan Palai].
