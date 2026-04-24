@@ -7,3 +7,7 @@ psycopg2-binary
 passlib[bcrypt]
 python-jose
 email-validator
+celery
+redis
+pytest
+httpx
