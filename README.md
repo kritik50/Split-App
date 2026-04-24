@@ -1,7 +1,6 @@
 # 💸 Split App (Expense Calculator)
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Available_Here-success?style=for-the-badge)](https://your-live-app-url.com)
-*(Note: Replace `https://your-live-app-url.com` with your actual deployed URL)*
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Available_Here-success?style=for-the-badge)](https://split-app-tawny-seven.vercel.app/)
 
 A production-ready, highly scalable expense splitting application designed to seamlessly manage group finances. Built with a robust **FastAPI** backend and a premium **Apple-inspired Glassmorphism** React frontend, it features advanced debt simplification algorithms, background processing, and bulletproof financial edge-case handling.
 
