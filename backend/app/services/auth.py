@@ -3,15 +3,14 @@ from jose import jwt, JWTError, ExpiredSignatureError
 from datetime import datetime, timedelta
 from fastapi import HTTPException
 
+import os
 
 # 🔐 JWT Config
-SECRET_KEY = "your_secret_key"
+SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
-REFRESH_SECRET_KEY = "refresh_secret"
+REFRESH_SECRET_KEY = os.getenv("REFRESH_SECRET_KEY", "refresh_secret")
 REFRESH_EXPIRE_DAYS = 7
-
-
 
 # 🔐 Password Hashing Config
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")

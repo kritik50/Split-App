@@ -41,8 +41,12 @@ const Auth = () => {
         // small success message trick — reuse error field with green styling
       }
     } catch (err) {
-      const msg = err?.response?.data?.detail || "Something went wrong.";
-      setError(msg);
+      if (!err.response) {
+        setError("Could not connect to the server. Is the backend running?");
+      } else {
+        const msg = err.response.data?.detail || "Something went wrong.";
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }

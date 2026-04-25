@@ -263,13 +263,14 @@
 .gd__tab-slider {
   position: absolute;
   top: 4px; bottom: 4px;
-  width: calc(50% - 4px);
+  width: calc(33.333% - 4px);
   background: var(--surface-3);
   border: 1px solid var(--border-md);
   border-radius: var(--r-full);
   transition: transform var(--t-mid);
 }
-.gd__tab-slider--right { transform: translateX(100%); }
+.gd__tab-slider--center { transform: translateX(100%); }
+.gd__tab-slider--right { transform: translateX(200%); }
 
 .gd__tab-btn {
   min-width: 120px;
@@ -409,6 +410,54 @@
 .gd__settle-btn:hover {
   transform: translateY(-1px);
   border-color: var(--green);
+}
+
+.gd__settlement-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gd__upi-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--brand-soft);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: var(--r-full);
+  color: var(--brand-hover);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all var(--t-fast);
+}
+
+.gd__upi-btn:hover {
+  background: rgba(99,102,241,0.2);
+  border-color: var(--brand);
+  transform: translateY(-1px);
+}
+
+.gd__export-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.gd__export-btn:hover {
+  color: var(--text-1);
+  border-color: var(--border-md);
+  background: var(--surface);
 }
 
 .gd__suggestion-card {
@@ -559,6 +608,42 @@
   display: flex;
   gap: 10px;
   margin-top: 4px;
+}
+
+/* ── Toggle ──────────────────────────────────────────────────── */
+.gd__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-2);
+  cursor: pointer;
+  margin-left: auto;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.gd__toggle input {
+  accent-color: var(--brand);
+}
+
+/* ── Insights ────────────────────────────────────────────────── */
+.gd__insights-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.gd__insights-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 24px;
+}
+.gd__insights-chart {
+  height: 250px;
+  width: 100%;
 }
 
 /* ── Responsive ──────────────────────────────────────────────── */

@@ -108,13 +108,18 @@ def get_optimized_settlements(
         user_ids.add(t["to"])
 
     users = db.query(User).filter(User.id.in_(user_ids)).all()
-    user_map = {u.id: u.name for u in users}
+    user_map = {u.id: u for u in users}
 
     result = []
     for t in transactions:
+        from_user = user_map.get(t["from"])
+        to_user = user_map.get(t["to"])
         result.append({
-            "from": user_map.get(t["from"], "Unknown"),
-            "to": user_map.get(t["to"], "Unknown"),
+            "from": from_user.name if from_user else "Unknown",
+            "from_id": t["from"],
+            "to": to_user.name if to_user else "Unknown",
+            "to_id": t["to"],
+            "to_upi_id": to_user.upi_id if to_user else None,
             "amount": t["amount"]
         })
 

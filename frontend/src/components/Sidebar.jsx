@@ -11,6 +11,8 @@ import {
   Menu,
   Activity,
   X,
+  Settings,
+  Save,
 } from "lucide-react";
 
 import { AuthContext }    from "../context/AuthContext";
@@ -103,12 +105,36 @@ const ActivityItem = ({ item }) => (
 const Sidebar = () => {
   const navigate  = useNavigate();
   const location  = useLocation();
-  const { user, logout }  = useContext(AuthContext);
+  const { user, logout, refreshUser }  = useContext(AuthContext);
   const {
     collapsed, setCollapsed,
     mobileOpen, setMobileOpen, closeMobile,
     sidebarData, loading,
   } = useContext(SidebarContext);
+
+  const [showSettings, setShowSettings] = useState(false);
+  const [upiId, setUpiId] = useState(user?.upi_id || "");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  useEffect(() => {
+    if (user?.upi_id) setUpiId(user.upi_id);
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    try {
+      setSaving(true);
+      setSaveError("");
+      await updateProfile({ upi_id: upiId.trim() });
+      await refreshUser();
+      setShowSettings(false);
+    } catch (err) {
+      setSaveError("Failed to save UPI ID");
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Close mobile on route change
   useEffect(() => { closeMobile(); }, [location.pathname]);
@@ -198,6 +224,13 @@ const Sidebar = () => {
               to="/activity"
               active={path === "/activity"}
             />
+
+            <SidebarItem
+              icon={Settings}
+              label="Settings"
+              onClick={() => setShowSettings(true)}
+              active={showSettings}
+            />
           </div>
 
           {/* GROUPS */}
@@ -273,6 +306,44 @@ const Sidebar = () => {
           </div>
         </div>
       </aside>
+
+      {/* ── Profile Settings Modal ───────────────────────── */}
+      {showSettings && (
+        <div className="sidebar-overlay" style={{ zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowSettings(false)}>
+          <div className="sb-settings-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="sb-settings-header">
+              <h3>Profile Settings</h3>
+              <button className="sb-settings-close" onClick={() => setShowSettings(false)}>
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div className="sb-settings-body">
+              <label className="sb-settings-label">UPI ID (for receiving payments)</label>
+              <input
+                className="sb-settings-input"
+                type="text"
+                placeholder="yourname@upi"
+                value={upiId}
+                onChange={(e) => setUpiId(e.target.value)}
+              />
+              <p className="sb-settings-hint">This ID will be shown to people who owe you money so they can pay you directly.</p>
+              
+              {saveError && <p className="sb-settings-error">{saveError}</p>}
+            </div>
+
+            <div className="sb-settings-footer">
+              <button
+                className="sb-settings-save"
+                onClick={handleSaveProfile}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : <><Save size={14} /> Save Profile</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

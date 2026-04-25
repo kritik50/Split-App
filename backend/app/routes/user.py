@@ -8,10 +8,27 @@ from app.models.group import Group
 from app.models.group_member import GroupMember
 from app.models.settlement import Settlement
 from app.models.user import User
+from app.schemas.user import UserUpdate, UserResponse
 from database import get_db
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
+
+@router.put("/me", response_model=UserResponse)
+def update_profile(
+    data: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if data.name:
+        current_user.name = data.name
+    if data.upi_id:
+        current_user.upi_id = data.upi_id
+    
+    db.commit()
+    db.refresh(current_user)
+    return current_user
 
 
 @router.get("/search")
@@ -142,6 +159,7 @@ def get_balances_summary(
             "counterparty_id": counterparty_id,
             "counterparty_name": counterparty.name if counterparty else f"User {counterparty_id}",
             "counterparty_email": counterparty.email if counterparty else "",
+            "counterparty_upi_id": counterparty.upi_id if counterparty else None,
         })
 
     summary.sort(key=lambda item: (item["group_name"], item["direction"], item["counterparty_name"]))

@@ -9,4 +9,5 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
     name = Column(String, nullable=False)
+    upi_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

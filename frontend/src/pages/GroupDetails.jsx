@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, X, AlertCircle, UserPlus } from "lucide-react";
+import { ArrowLeft, Users, X, AlertCircle, UserPlus, BarChart3, Download, CreditCard } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 import {
   getGroupMembers,
   getGroupSummary,
   getGroupBalances,
   addMemberToGroup,
+  exportGroupCsv,
 } from "../api/groupApi";
 import { getExpensesByGroup } from "../api/expenseApi";
 import { createSettlement, getOptimizedSettlements } from "../api/settlementApi";
@@ -38,6 +40,7 @@ const GroupDetails = () => {
   const [optimizedSettlements, setOptimizedSettlements] = useState([]);
 
   const [activeTab, setActiveTab] = useState("ledger");
+  const [simplifiedDebts, setSimplifiedDebts] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
 
@@ -85,6 +88,21 @@ const GroupDetails = () => {
     const member = members.find((item) => item.user_id === userId);
     return member?.name || `User ${userId}`;
   };
+
+  const monthlyData = useMemo(() => {
+    if (!expenses.length) return [];
+    const map = {};
+    expenses.forEach((exp) => {
+      if (!exp.created_at) return;
+      const date = new Date(exp.created_at);
+      const month = date.toLocaleString("default", { month: "short" });
+      map[month] = (map[month] || 0) + exp.amount;
+    });
+    return Object.keys(map).map((month) => ({
+      name: month,
+      amount: map[month],
+    }));
+  }, [expenses]);
 
   const openSettlementModal = (balance) => {
     setSelectedBalance(balance);
@@ -165,6 +183,28 @@ const GroupDetails = () => {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const res = await exportGroupCsv(id);
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `group_${id}_expenses.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Export failed:", err);
+    }
+  };
+
+  const getUPILink = (upiId, amount, name, note) => {
+    if (!upiId) return null;
+    const cleanAmount = Number(amount).toFixed(2);
+    // Standard UPI deep link format: upi://pay?pa=<address>&pn=<name>&am=<amount>&tn=<note>&cu=INR
+    return `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(name)}&am=${cleanAmount}&tn=${encodeURIComponent(note || "Settlement via Split")}&cu=INR`;
+  };
+
   const hasError = ["members", "summary", "expenses", "balances"].some((key) => errors[key]);
 
   if (loading) {
@@ -190,7 +230,11 @@ const GroupDetails = () => {
           </button>
 
           <h2 className="gd__title">{summary?.group_name || "Group Details"}</h2>
-          <div style={{ width: 80 }} />
+          
+          <button className="gd__export-btn" onClick={handleExport} title="Export Expenses to CSV">
+            <Download size={15} />
+            <span>Export</span>
+          </button>
         </header>
 
         {hasError && (
@@ -260,7 +304,7 @@ const GroupDetails = () => {
         </div>
 
         <div className="gd__tabs">
-          <div className={`gd__tab-slider ${activeTab === "balances" ? "gd__tab-slider--right" : ""}`} />
+          <div className={`gd__tab-slider ${activeTab === "balances" ? "gd__tab-slider--center" : activeTab === "insights" ? "gd__tab-slider--right" : ""}`} />
           <button
             className={`gd__tab-btn ${activeTab === "ledger" ? "gd__tab-btn--active" : ""}`}
             onClick={() => setActiveTab("ledger")}
@@ -272,6 +316,12 @@ const GroupDetails = () => {
             onClick={() => setActiveTab("balances")}
           >
             Balances
+          </button>
+          <button
+            className={`gd__tab-btn ${activeTab === "insights" ? "gd__tab-btn--active" : ""}`}
+            onClick={() => setActiveTab("insights")}
+          >
+            Insights
           </button>
         </div>
 
@@ -308,13 +358,23 @@ const GroupDetails = () => {
 
           {activeTab === "balances" && (
             <>
-              <div className="gd__section-title">Who owes whom</div>
+              <div className="gd__section-title">
+                Who owes whom
+                <label className="gd__toggle">
+                  <input
+                    type="checkbox"
+                    checked={simplifiedDebts}
+                    onChange={(e) => setSimplifiedDebts(e.target.checked)}
+                  />
+                  Simplified Debts
+                </label>
+              </div>
 
               {errors.balances ? (
                 <div className="gd__empty gd__empty--error">
                   <p>Failed to load balances</p>
                 </div>
-              ) : balances.length === 0 ? (
+              ) : (simplifiedDebts ? optimizedSettlements : balances).length === 0 ? (
                 <div className="gd__empty">
                   <span className="gd__empty-icon">OK</span>
                   <h4>All settled up!</h4>
@@ -322,31 +382,50 @@ const GroupDetails = () => {
                 </div>
               ) : (
                 <div className="gd__balance-list">
-                  {balances.map((balance, index) => {
-                    const youOwe = balance.from_user_id === user?.id;
-                    const youAreOwed = balance.to_user_id === user?.id;
+                  {(simplifiedDebts ? optimizedSettlements : balances).map((balance, index) => {
+                    // For simplified, it's item.from and item.to. For normal, from_user_name / to_user_name.
+                    // Let's normalize it to the normal layout.
+                    let youOwe, youAreOwed, fromName, toName, amount, originalBalance, toUpiId;
+
+                    if (simplifiedDebts) {
+                      youOwe = balance.from_id === user?.id;
+                      youAreOwed = balance.to_id === user?.id;
+                      fromName = balance.from;
+                      toName = balance.to;
+                      amount = balance.amount;
+                      toUpiId = balance.to_upi_id;
+                      originalBalance = null;
+                    } else {
+                      youOwe = balance.from_user_id === user?.id;
+                      youAreOwed = balance.to_user_id === user?.id;
+                      fromName = balance.from_user_name;
+                      toName = balance.to_user_name;
+                      amount = balance.amount;
+                      toUpiId = balance.to_user_upi_id;
+                      originalBalance = balance;
+                    }
 
                     return (
-                      <div key={`${balance.from_user_id}-${balance.to_user_id}-${index}`} className="gd__settlement">
+                      <div key={simplifiedDebts ? `opt-${fromName}-${toName}-${index}` : `bal-${balance.from_user_id}-${balance.to_user_id}-${index}`} className="gd__settlement">
                         <div className="gd__settlement-body">
                           <div className="gd__settlement-text">
                             {youOwe ? (
                               <>
                                 <strong>You</strong>
                                 <span className="gd__settlement-arrow">{"->"}</span>
-                                <strong>{balance.to_user_name}</strong>
+                                <strong>{toName}</strong>
                               </>
                             ) : youAreOwed ? (
                               <>
-                                <strong>{balance.from_user_name}</strong>
+                                <strong>{fromName}</strong>
                                 <span className="gd__settlement-arrow">{"->"}</span>
                                 <strong>You</strong>
                               </>
                             ) : (
                               <>
-                                <strong>{balance.from_user_name}</strong>
+                                <strong>{fromName}</strong>
                                 <span className="gd__settlement-arrow">{"->"}</span>
-                                <strong>{balance.to_user_name}</strong>
+                                <strong>{toName}</strong>
                               </>
                             )}
                           </div>
@@ -361,15 +440,33 @@ const GroupDetails = () => {
                         </div>
 
                         <div className="gd__settlement-side">
-                          <div className="gd__settlement-amount">Rs{balance.amount}</div>
-                          {youOwe && (
-                            <button
-                              className="gd__settle-btn"
-                              onClick={() => openSettlementModal(balance)}
-                            >
-                              Mark settled
-                            </button>
-                          )}
+                          <div className="gd__settlement-amount">Rs{amount}</div>
+                          
+                          <div className="gd__settlement-actions">
+                            {youOwe && (
+                              <>
+                                {toUpiId && (
+                                  <a
+                                    href={getUPILink(toUpiId, amount, toName, `Settling in ${summary?.group_name}`)}
+                                    className="gd__upi-btn"
+                                    title={`Pay ${toName} via UPI`}
+                                  >
+                                    <CreditCard size={13} />
+                                    <span>UPI Pay</span>
+                                  </a>
+                                )}
+                                
+                                {originalBalance && (
+                                  <button
+                                    className="gd__settle-btn"
+                                    onClick={() => openSettlementModal(originalBalance)}
+                                  >
+                                    Mark settled
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -377,20 +474,36 @@ const GroupDetails = () => {
                 </div>
               )}
 
-              {optimizedSettlements.length > 0 && (
-                <>
-                  <div className="gd__section-title gd__section-title--spaced">Suggested settlements</div>
-                  <div className="gd__suggestions">
-                    {optimizedSettlements.map((item, index) => (
-                      <div key={`${item.from}-${item.to}-${index}`} className="gd__suggestion-card">
-                        <span>
-                          <strong>{item.from}</strong> pays <strong>{item.to}</strong>
-                        </span>
-                        <span>Rs{item.amount}</span>
-                      </div>
-                    ))}
+            </>
+          )}
+
+          {activeTab === "insights" && (
+            <>
+              <div className="gd__section-title">Expense Insights</div>
+              {monthlyData.length === 0 ? (
+                <div className="gd__empty">
+                  <span className="gd__empty-icon"><BarChart3 size={32} /></span>
+                  <h4>No data to show</h4>
+                  <p>Add some expenses to see your monthly chart.</p>
+                </div>
+              ) : (
+                <div className="gd__insights-card">
+                  <div className="gd__insights-title">Monthly Spending</div>
+                  <div className="gd__insights-chart">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={monthlyData}>
+                        <XAxis dataKey="name" tick={{ fill: "var(--text-3)", fontSize: 12 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: "var(--text-3)", fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(val) => `Rs${val}`} />
+                        <Tooltip
+                          cursor={{ fill: "var(--surface-3)" }}
+                          contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", color: "var(--text-1)" }}
+                          itemStyle={{ color: "var(--brand)" }}
+                        />
+                        <Bar dataKey="amount" fill="var(--brand)" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                </>
+                </div>
               )}
             </>
           )}

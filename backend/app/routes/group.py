@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
+import io
+import csv
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -82,3 +85,44 @@ def delete_group(
     current_user=Depends(get_current_user)
 ):
     return GroupService.delete_group(db, group_id, current_user.id)
+
+
+@router.get("/{group_id}/export")
+def export_group_csv(
+    group_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    # Check membership
+    member = db.query(GroupMember).filter(
+        GroupMember.group_id == group_id,
+        GroupMember.user_id == current_user.id
+    ).first()
+    if not member:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    expenses = db.query(Expense).filter(Expense.group_id == group_id).all()
+    
+    # Get user names for map
+    user_ids = {e.paid_by for e in expenses}
+    users = db.query(User).filter(User.id.in_(user_ids)).all()
+    user_map = {u.id: u.name for u in users}
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Date", "Description", "Paid By", "Amount"])
+    
+    for e in expenses:
+        writer.writerow([
+            e.created_at.strftime("%Y-%m-%d %H:%M:%S") if e.created_at else "",
+            e.notes,
+            user_map.get(e.paid_by, f"User {e.paid_by}"),
+            e.amount
+        ])
+    
+    output.seek(0)
+    return StreamingResponse(
+        io.BytesIO(output.getvalue().encode()),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=group_{group_id}_expenses.csv"}
+    )

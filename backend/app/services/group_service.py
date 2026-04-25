@@ -155,7 +155,7 @@ class GroupService:
             user_ids.add(b.user_gets_id)
 
         users = db.query(User).filter(User.id.in_(user_ids)).all()
-        user_map = {u.id: {"name": u.name, "email": u.email} for u in users}
+        user_map = {u.id: {"name": u.name, "email": u.email, "upi_id": u.upi_id} for u in users}
 
         return [
             {
@@ -163,6 +163,7 @@ class GroupService:
                 "from_user_name": user_map.get(b.user_owes_id, {}).get("name", f"User {b.user_owes_id}"),
                 "to_user_id": b.user_gets_id,
                 "to_user_name": user_map.get(b.user_gets_id, {}).get("name", f"User {b.user_gets_id}"),
+                "to_user_upi_id": user_map.get(b.user_gets_id, {}).get("upi_id"),
                 "amount": round(b.amount, 2),
             }
             for b in balances
