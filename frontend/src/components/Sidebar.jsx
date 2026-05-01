@@ -1,4 +1,5 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutGrid,
@@ -17,6 +18,7 @@ import {
 
 import { AuthContext }    from "../context/AuthContext";
 import { SidebarContext } from "../context/SidebarContext";
+import { updateProfile } from "../api/userApi";
 import "./Sidebar.css";
 
 // ─── Helpers ────────────────────────────────────────────────────
@@ -108,7 +110,7 @@ const Sidebar = () => {
   const { user, logout, refreshUser }  = useContext(AuthContext);
   const {
     collapsed, setCollapsed,
-    mobileOpen, setMobileOpen, closeMobile,
+    mobileOpen, closeMobile,
     sidebarData, loading,
   } = useContext(SidebarContext);
 
@@ -308,16 +310,22 @@ const Sidebar = () => {
       </aside>
 
       {/* ── Profile Settings Modal ───────────────────────── */}
-      {showSettings && (
-        <div className="sidebar-overlay" style={{ zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowSettings(false)}>
-          <div className="sb-settings-modal" onClick={(e) => e.stopPropagation()}>
+      {showSettings && createPortal(
+        <div
+          className="sb-settings-backdrop"
+          onClick={() => setShowSettings(false)}
+        >
+          <div
+            className="sb-settings-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="sb-settings-header">
               <h3>Profile Settings</h3>
               <button className="sb-settings-close" onClick={() => setShowSettings(false)}>
                 <X size={16} />
               </button>
             </div>
-            
+
             <div className="sb-settings-body">
               <label className="sb-settings-label">UPI ID (for receiving payments)</label>
               <input
@@ -328,7 +336,7 @@ const Sidebar = () => {
                 onChange={(e) => setUpiId(e.target.value)}
               />
               <p className="sb-settings-hint">This ID will be shown to people who owe you money so they can pay you directly.</p>
-              
+
               {saveError && <p className="sb-settings-error">{saveError}</p>}
             </div>
 
@@ -342,7 +350,8 @@ const Sidebar = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
