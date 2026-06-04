@@ -51,8 +51,6 @@ def create_refresh_token(data: dict):
 def decode_access_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print("PAYLOAD:", payload)   # 🔥 DEBUG
-
         user_id = payload.get("sub")
 
         if user_id is None:
@@ -63,6 +61,5 @@ def decode_access_token(token: str):
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
 
-    except JWTError as e:
-        print("JWT ERROR:", str(e))   # 🔥 VERY IMPORTANT
+    except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")

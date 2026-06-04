@@ -31,7 +31,7 @@ const Landing = () => {
         <div className="landing__cta">
           <button
             className="landing__btn-primary"
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/register")}
           >
             Get Started
           </button>

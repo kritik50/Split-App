@@ -1,0 +1,109 @@
+/* ═══ 404 Page ═══════════════════════════════════════════════════════ */
+.nf {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-base);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.nf__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+}
+.nf__orb--1 {
+  width: 60vw; height: 60vw; max-width: 700px;
+  top: -20%; left: -10%;
+  background: radial-gradient(circle, rgba(125, 211, 252, 0.07) 0%, transparent 70%);
+}
+.nf__orb--2 {
+  width: 50vw; height: 50vw; max-width: 600px;
+  bottom: -20%; right: -10%;
+  background: radial-gradient(circle, rgba(200, 160, 240, 0.06) 0%, transparent 70%);
+}
+
+.nf__card {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 440px;
+  animation: scaleIn 0.4s var(--t-spring) both;
+}
+
+.nf__code {
+  font-family: var(--font-display);
+  font-size: clamp(5rem, 18vw, 10rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--tertiary) 60%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 0 40px rgba(125, 211, 252, 0.15));
+}
+
+.nf__title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 10px;
+}
+
+.nf__text {
+  font-size: 0.9rem;
+  color: var(--text-3);
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.nf__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.nf__home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.22) 0%, rgba(125, 211, 252, 0.12) 100%);
+  border: 1px solid var(--primary-border);
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: all var(--t-spring);
+  box-shadow: 0 0 24px rgba(125, 211, 252, 0.08);
+}
+.nf__home-btn:hover {
+  background: rgba(125, 211, 252, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(125, 211, 252, 0.18);
+}
+
+.nf__back-btn {
+  padding: 12px 24px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.nf__back-btn:hover {
+  color: var(--text-1);
+  border-color: var(--border-md);
+  background: var(--bg-surface-mid);
+}

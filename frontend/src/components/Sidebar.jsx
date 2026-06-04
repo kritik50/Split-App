@@ -1,27 +1,26 @@
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutGrid,
-  Receipt,
+  Activity,
   ArrowLeftRight,
-  Plus,
   ChevronLeft,
   ChevronRight,
+  LayoutGrid,
   LogOut,
   Menu,
-  Activity,
-  X,
-  Settings,
+  Plus,
+  Receipt,
   Save,
+  Settings,
+  X,
 } from "lucide-react";
 
-import { AuthContext }    from "../context/AuthContext";
-import { SidebarContext } from "../context/SidebarContext";
 import { updateProfile } from "../api/userApi";
+import { AuthContext } from "../context/AuthContext.js";
+import { SidebarContext } from "../context/SidebarContext.js";
 import "./Sidebar.css";
 
-// ─── Helpers ────────────────────────────────────────────────────
 const getInitials = (name = "") => {
   const parts = name.trim().split(/\s+/);
   return parts.length >= 2
@@ -29,26 +28,32 @@ const getInitials = (name = "") => {
     : name.slice(0, 2).toUpperCase();
 };
 
-const fmtAmount = (n) =>
-  `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 0 })}`;
+const formatAmount = (value) =>
+  `₹${Number(value).toLocaleString("en-IN", { minimumFractionDigits: 0 })}`;
 
 const timeAgo = (iso) => {
   if (!iso) return "";
+
   const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
-  if (diff < 60)    return "just now";
-  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 };
 
-// ─── SidebarItem ────────────────────────────────────────────────
-const SidebarItem = ({ icon: Icon, label, to, onClick, active, badge }) => {
+const SidebarItem = ({ icon, label, to, onClick, active, badge }) => {
   const navigate = useNavigate();
   const { closeMobile } = useContext(SidebarContext);
+  const IconComponent = icon;
 
   const handleClick = () => {
-    if (to) { navigate(to); closeMobile(); }
-    else if (onClick) onClick();
+    if (to) {
+      navigate(to);
+      closeMobile();
+      return;
+    }
+
+    if (onClick) onClick();
   };
 
   return (
@@ -58,17 +63,14 @@ const SidebarItem = ({ icon: Icon, label, to, onClick, active, badge }) => {
       data-tooltip={label}
     >
       <span className="sb-item__icon">
-        <Icon size={17} strokeWidth={active ? 2.2 : 1.8} />
+        <IconComponent size={17} strokeWidth={active ? 2.2 : 1.8} />
       </span>
       <span className="sb-item__label">{label}</span>
-      {badge != null && badge > 0 && (
-        <span className="sb-item__badge">{badge}</span>
-      )}
+      {badge != null && badge > 0 && <span className="sb-item__badge">{badge}</span>}
     </button>
   );
 };
 
-// ─── GroupItem ──────────────────────────────────────────────────
 const GroupItem = ({ group, active }) => {
   const navigate = useNavigate();
   const { closeMobile } = useContext(SidebarContext);
@@ -76,7 +78,10 @@ const GroupItem = ({ group, active }) => {
   return (
     <button
       className={`sb-group-item ${active ? "sb-group-item--active" : ""}`}
-      onClick={() => { navigate(`/group/${group.id}`); closeMobile(); }}
+      onClick={() => {
+        navigate(`/group/${group.id}`);
+        closeMobile();
+      }}
       data-tooltip={group.name}
     >
       <span className="sb-group-avatar">{getInitials(group.name)}</span>
@@ -85,7 +90,6 @@ const GroupItem = ({ group, active }) => {
   );
 };
 
-// ─── ActivityItem ────────────────────────────────────────────────
 const ActivityItem = ({ item }) => (
   <div className="sb-activity-item">
     <span className={`sb-activity-dot sb-activity-dot--${item.type}`} />
@@ -99,66 +103,70 @@ const ActivityItem = ({ item }) => (
         {item.group_name} · {timeAgo(item.created_at)}
       </div>
     </div>
-    <span className="sb-activity-amount">{fmtAmount(item.amount)}</span>
+    <span className="sb-activity-amount">{formatAmount(item.amount)}</span>
   </div>
 );
 
-// ─── Main Sidebar ────────────────────────────────────────────────
 const Sidebar = () => {
-  const navigate  = useNavigate();
-  const location  = useLocation();
-  const { user, logout, refreshUser }  = useContext(AuthContext);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout, refreshUser } = useContext(AuthContext);
   const {
-    collapsed, setCollapsed,
-    mobileOpen, closeMobile,
-    sidebarData, loading,
+    collapsed,
+    setCollapsed,
+    mobileOpen,
+    closeMobile,
+    sidebarData,
+    loading,
   } = useContext(SidebarContext);
 
   const [showSettings, setShowSettings] = useState(false);
   const [upiId, setUpiId] = useState(user?.upi_id || "");
+  const [displayName, setDisplayName] = useState(user?.name || "");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
-    if (user?.upi_id) setUpiId(user.upi_id);
+    setUpiId(user?.upi_id || "");
+    setDisplayName(user?.name || "");
   }, [user]);
+
+  useEffect(() => {
+    closeMobile();
+  }, [closeMobile, location.pathname]);
 
   const handleSaveProfile = async () => {
     try {
       setSaving(true);
       setSaveError("");
-      await updateProfile({ upi_id: upiId.trim() });
+      setSaveSuccess(false);
+      await updateProfile({ upi_id: upiId.trim(), name: displayName.trim() || undefined });
       await refreshUser();
-      setShowSettings(false);
+      setSaveSuccess(true);
+      setTimeout(() => { setShowSettings(false); setSaveSuccess(false); }, 1200);
     } catch (err) {
-      setSaveError("Failed to save UPI ID");
+      setSaveError("Failed to save profile.");
       console.error(err);
     } finally {
       setSaving(false);
     }
   };
 
-  // Close mobile on route change
-  useEffect(() => { closeMobile(); }, [location.pathname]);
-
-  const path    = location.pathname;
-  const groups  = sidebarData?.groups  || [];
-  const recent  = sidebarData?.recent  || [];
-  const stats   = sidebarData?.stats   || {};
-
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
+  const path = location.pathname;
+  const groups = sidebarData?.groups || [];
+  const recent = sidebarData?.recent || [];
+  const stats = sidebarData?.stats || {};
+
   return (
     <>
-      {/* ── Mobile Overlay ──────────────────────────────────── */}
-      {mobileOpen && (
-        <div className="sidebar-overlay" onClick={closeMobile} />
-      )}
+      {mobileOpen && <div className="sidebar-overlay" onClick={closeMobile} />}
 
-      {/* ── Sidebar Shell ───────────────────────────────────── */}
       <aside
         className={[
           "sidebar",
@@ -166,13 +174,9 @@ const Sidebar = () => {
           mobileOpen ? "sidebar--mobile-open" : "",
         ].join(" ")}
       >
-        {/* ── Top: Brand + Collapse ──────────────────────── */}
         <div className="sidebar__top">
           {!collapsed && (
-            <button
-              className="sidebar__brand"
-              onClick={() => navigate("/groups")}
-            >
+            <button className="sidebar__brand" onClick={() => navigate("/groups")}>
               <span className="sidebar__brand-dot" />
               <span className="sidebar__brand-name">SPLIT</span>
             </button>
@@ -180,20 +184,14 @@ const Sidebar = () => {
 
           <button
             className="sidebar__toggle"
-            onClick={() => setCollapsed((c) => !c)}
+            onClick={() => setCollapsed((current) => !current)}
             title={collapsed ? "Expand" : "Collapse"}
           >
-            {collapsed
-              ? <ChevronRight size={14} />
-              : <ChevronLeft  size={14} />
-            }
+            {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
         </div>
 
-        {/* ── Scrollable body ───────────────────────────── */}
         <div className="sidebar__body">
-
-          {/* MAIN NAV */}
           <div className="sidebar__section">
             <div className="sidebar__section-label">Navigate</div>
 
@@ -235,7 +233,6 @@ const Sidebar = () => {
             />
           </div>
 
-          {/* GROUPS */}
           <div className="sidebar__section">
             <div className="sidebar__section-label">Groups</div>
 
@@ -246,28 +243,33 @@ const Sidebar = () => {
               </>
             ) : (
               <div className="sidebar__groups">
-                {groups.map((g) => (
+                {groups.map((group) => (
                   <GroupItem
-                    key={g.id}
-                    group={g}
-                    active={path === `/group/${g.id}`}
+                    key={group.id}
+                    group={group}
+                    active={path === `/group/${group.id}`}
                   />
                 ))}
 
                 {groups.length === 0 && !loading && (
-                  <p style={{
-                    fontSize: "0.76rem",
-                    color: "var(--text-3)",
-                    padding: "6px 10px",
-                    fontStyle: "italic",
-                  }}>
+                  <p
+                    style={{
+                      fontSize: "0.76rem",
+                      color: "var(--text-3)",
+                      padding: "6px 10px",
+                      fontStyle: "italic",
+                    }}
+                  >
                     No groups yet
                   </p>
                 )}
 
                 <button
                   className="sb-create-btn"
-                  onClick={() => { navigate("/groups?modal=new"); closeMobile(); }}
+                  onClick={() => {
+                    navigate("/groups?modal=new");
+                    closeMobile();
+                  }}
                   data-tooltip="New Group"
                 >
                   <Plus size={14} strokeWidth={2.5} />
@@ -277,18 +279,16 @@ const Sidebar = () => {
             )}
           </div>
 
-          {/* RECENT ACTIVITY */}
           {recent.length > 0 && (
             <div className="sidebar__section">
               <div className="sidebar__section-label">Recent</div>
-              {recent.slice(0, 4).map((item, i) => (
-                <ActivityItem key={i} item={item} />
+              {recent.slice(0, 4).map((item, index) => (
+                <ActivityItem key={index} item={item} />
               ))}
             </div>
           )}
         </div>
 
-        {/* ── Footer: Profile ───────────────────────────── */}
         <div className="sidebar__foot">
           <div className="sb-profile">
             <div className="sb-profile__avatar">
@@ -298,66 +298,76 @@ const Sidebar = () => {
               <div className="sb-profile__name">{user?.name || "User"}</div>
               <div className="sb-profile__email">{user?.email || ""}</div>
             </div>
-            <button
-              className="sb-logout"
-              onClick={handleLogout}
-              title="Sign out"
-            >
+            <button className="sb-logout" onClick={handleLogout} title="Sign out">
               <LogOut size={14} />
             </button>
           </div>
         </div>
       </aside>
 
-      {/* ── Profile Settings Modal ───────────────────────── */}
-      {showSettings && createPortal(
-        <div
-          className="sb-settings-backdrop"
-          onClick={() => setShowSettings(false)}
-        >
+      {showSettings &&
+        createPortal(
           <div
-            className="sb-settings-modal"
-            onClick={(e) => e.stopPropagation()}
+            className="sb-settings-backdrop"
+            onClick={() => setShowSettings(false)}
           >
-            <div className="sb-settings-header">
-              <h3>Profile Settings</h3>
-              <button className="sb-settings-close" onClick={() => setShowSettings(false)}>
-                <X size={16} />
-              </button>
-            </div>
+            <div
+              className="sb-settings-modal"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="sb-settings-header">
+                <h3>Profile Settings</h3>
+                <button
+                  className="sb-settings-close"
+                  onClick={() => setShowSettings(false)}
+                >
+                  <X size={16} />
+                </button>
+              </div>
 
-            <div className="sb-settings-body">
-              <label className="sb-settings-label">UPI ID (for receiving payments)</label>
-              <input
-                className="sb-settings-input"
-                type="text"
-                placeholder="yourname@upi"
-                value={upiId}
-                onChange={(e) => setUpiId(e.target.value)}
-              />
-              <p className="sb-settings-hint">This ID will be shown to people who owe you money so they can pay you directly.</p>
+              <div className="sb-settings-body">
+                <label className="sb-settings-label">Display Name</label>
+                <input
+                  className="sb-settings-input"
+                  type="text"
+                  placeholder="Your full name"
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                />
 
-              {saveError && <p className="sb-settings-error">{saveError}</p>}
-            </div>
+                <label className="sb-settings-label" style={{ marginTop: 14 }}>UPI ID (for receiving payments)</label>
+                <input
+                  className="sb-settings-input"
+                  type="text"
+                  placeholder="yourname@upi"
+                  value={upiId}
+                  onChange={(event) => setUpiId(event.target.value)}
+                />
+                <p className="sb-settings-hint">
+                  This ID will be shown to people who owe you money so they can pay you directly.
+                </p>
 
-            <div className="sb-settings-footer">
-              <button
-                className="sb-settings-save"
-                onClick={handleSaveProfile}
-                disabled={saving}
-              >
-                {saving ? "Saving..." : <><Save size={14} /> Save Profile</>}
-              </button>
+                {saveError && <p className="sb-settings-error">{saveError}</p>}
+                {saveSuccess && <p style={{ fontSize: "0.8rem", color: "var(--green)", fontWeight: 600 }}>Profile saved!</p>}
+              </div>
+
+              <div className="sb-settings-footer">
+                <button
+                  className="sb-settings-save"
+                  onClick={handleSaveProfile}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : <><Save size={14} /> Save Profile</>}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 };
 
-// ─── Mobile Top Bar ──────────────────────────────────────────────
 export const MobileTopBar = () => {
   const { mobileOpen, setMobileOpen } = useContext(SidebarContext);
 
@@ -365,7 +375,7 @@ export const MobileTopBar = () => {
     <div className="mobile-topbar">
       <button
         className="mobile-topbar__hamburger"
-        onClick={() => setMobileOpen((v) => !v)}
+        onClick={() => setMobileOpen((current) => !current)}
         aria-label="Open navigation"
       >
         {mobileOpen ? <X size={16} /> : <Menu size={16} />}

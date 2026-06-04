@@ -5,7 +5,7 @@ import { ArrowLeft, IndianRupee, FileText, Users, Check, Wallet } from "lucide-r
 import { addExpense } from "../api/expenseApi";
 import { getGroupMembers } from "../api/groupApi";
 import { SidebarContext } from "../context/SidebarContext";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/AuthContext.js";
 import "./AddExpense.css";
 
 const SPLIT_OPTIONS = [
@@ -22,7 +22,7 @@ const getInitials = (name) => {
     : name.slice(0, 2).toUpperCase();
 };
 
-const formatMoney = (value) => `Rs. ${Number(value || 0).toFixed(2)}`;
+const formatMoney = (value) => `₹${Number(value || 0).toFixed(2)}`;
 
 const AddExpense = () => {
   const { id } = useParams();
@@ -347,7 +347,7 @@ const AddExpense = () => {
                             }
                           />
                           <span className="ae__member-input-suffix">
-                            {splitType === "exact" ? "Rs" : "%"}
+                            {splitType === "exact" ? "₹" : "%"}
                           </span>
                         </div>
                       )}

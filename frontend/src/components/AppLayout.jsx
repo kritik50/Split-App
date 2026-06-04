@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { SidebarContext } from "../context/SidebarContext";
+import { SidebarContext } from "../context/SidebarContext.js";
 import Sidebar, { MobileTopBar } from "./Sidebar";
 import "../components/Sidebar.css";
 

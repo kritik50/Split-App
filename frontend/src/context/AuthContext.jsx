@@ -1,29 +1,24 @@
-import { createContext, useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { loginUser } from "../api/authApi";
 import api from "../api/api";
-
-export const AuthContext = createContext();
+import { AuthContext } from "./AuthContext.js";
 
 export const AuthProvider = ({ children }) => {
-  // ✅ Store full user object {id, name, email}, not just token
   const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(() =>
+    Boolean(localStorage.getItem("token"))
+  );
 
-  // ── On mount: re-hydrate user from stored token ──────────────────────────
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      setAuthLoading(false);
-      return;
-    }
+    if (!token) return;
 
     api
       .get("/auth/me")
       .then((res) => {
-        setUser(res.data); // { id, name, email }
+        setUser(res.data);
       })
       .catch(() => {
-        // Token invalid or expired — clear it
         localStorage.removeItem("token");
         setUser(null);
       })
@@ -36,11 +31,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await loginUser(formData);
       const token = res.data.access_token;
+
       localStorage.setItem("token", token);
 
-      // Fetch full user info after login
       const meRes = await api.get("/auth/me");
-      setUser(meRes.data); // { id, name, email }
+      setUser(meRes.data);
+      setAuthLoading(false);
 
       return true;
     } catch (err) {
@@ -61,6 +57,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
+    setAuthLoading(false);
   };
 
   return (

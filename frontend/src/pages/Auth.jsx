@@ -1,27 +1,39 @@
 import { useState, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/AuthContext.js";
 import { registerUser } from "../api/authApi";
-import { useNavigate } from "react-router-dom";
-import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Mail, Lock, User, ArrowRight, CheckCircle } from "lucide-react";
 import "./Auth.css";
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [loading, setLoading]  = useState(false);
-  const [error, setError]      = useState("");
+  const location = useLocation();
+  const initialMode = location.pathname === "/register" ? false : true;
+
+  const [isLogin, setIsLogin] = useState(initialMode);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const [form, setForm] = useState({ name: "", email: "", password: "" });
 
   const { login } = useContext(AuthContext);
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setError("");
+    setSuccessMsg("");
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const switchMode = (toLogin) => {
+    setIsLogin(toLogin);
+    setError("");
+    setSuccessMsg("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMsg("");
     setLoading(true);
 
     try {
@@ -33,12 +45,11 @@ const Auth = () => {
           setError("Invalid email or password.");
         }
       } else {
-        if (!form.name.trim()) { setError("Name is required."); return; }
+        if (!form.name.trim()) { setError("Name is required."); setLoading(false); return; }
         await registerUser(form);
+        setSuccessMsg("Account created! Please sign in.");
         setIsLogin(true);
         setForm({ name: "", email: form.email, password: "" });
-        setError(""); // clear
-        // small success message trick — reuse error field with green styling
       }
     } catch (err) {
       if (!err.response) {
@@ -74,17 +85,25 @@ const Auth = () => {
           <div className={`auth__tab-slider ${!isLogin ? "auth__tab-slider--right" : ""}`} />
           <button
             className={`auth__tab-btn ${isLogin ? "auth__tab-btn--active" : ""}`}
-            onClick={() => { setIsLogin(true); setError(""); }}
+            onClick={() => switchMode(true)}
           >
             Sign in
           </button>
           <button
             className={`auth__tab-btn ${!isLogin ? "auth__tab-btn--active" : ""}`}
-            onClick={() => { setIsLogin(false); setError(""); }}
+            onClick={() => switchMode(false)}
           >
             Register
           </button>
         </div>
+
+        {/* Success banner */}
+        {successMsg && (
+          <div className="auth__success">
+            <CheckCircle size={15} />
+            {successMsg}
+          </div>
+        )}
 
         {/* Form */}
         <form className="auth__form" onSubmit={handleSubmit}>
@@ -163,7 +182,7 @@ const Auth = () => {
               color: "var(--brand-hover)", fontWeight: 600,
               cursor: "pointer", fontSize: "inherit",
             }}
-            onClick={() => { setIsLogin(!isLogin); setError(""); }}
+            onClick={() => switchMode(!isLogin)}
           >
             {isLogin ? "Register" : "Sign in"}
           </button>

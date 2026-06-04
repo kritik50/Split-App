@@ -1,33 +1,49 @@
-import { useState, useEffect, useRef, useContext } from "react";
-import { Plus, ArrowRight, Trash2, X, Users } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { getGroups, deleteGroup, createGroup } from "../api/groupApi";
-import { SidebarContext } from "../context/SidebarContext";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { ArrowRight, Plus, Trash2, Users, X } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { createGroup, deleteGroup, getGroups } from "../api/groupApi";
+import { SidebarContext } from "../context/SidebarContext.js";
+import { useToast } from "../context/ToastContext.jsx";
+import ConfirmModal from "../components/ConfirmModal";
 import "./Groups.css";
 
-/* ─────────────────────────────────────────────────────────────── */
-/*  Create Group Modal                                             */
-/* ─────────────────────────────────────────────────────────────── */
+const GROUP_CATEGORIES = [
+  { id: "",        label: "No category" },
+  { id: "trip",   label: "✈️ Trip" },
+  { id: "home",   label: "🏠 Home" },
+  { id: "food",   label: "🍕 Food" },
+  { id: "work",   label: "💼 Work" },
+  { id: "other",  label: "📦 Other" },
+];
+
+const CATEGORY_LABELS = {
+  trip:  "✈️ Trip",
+  home:  "🏠 Home",
+  food:  "🍕 Food",
+  work:  "💼 Work",
+  other: "📦 Other",
+};
+
 const CreateGroupModal = ({ onClose, onCreated }) => {
-  const [name, setName]       = useState("");
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
+  const [error, setError] = useState("");
   const inputRef = useRef(null);
 
-  // trap focus & auto-focus input
   useEffect(() => {
     inputRef.current?.focus();
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const onKeyDown = (event) => { if (event.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     if (!name.trim()) { setError("Group name is required."); return; }
     try {
       setLoading(true);
-      const res = await createGroup({ name: name.trim() });
+      const res = await createGroup({ name: name.trim(), category: category || null });
       onCreated(res.data);
     } catch (err) {
       setError(err?.response?.data?.detail || "Failed to create group.");
@@ -37,20 +53,12 @@ const CreateGroupModal = ({ onClose, onCreated }) => {
   };
 
   return (
-    /* Backdrop */
     <div className="cgm-backdrop" onClick={onClose} role="dialog" aria-modal="true">
-
-      {/* Modal panel — stop propagation so clicks inside don't close */}
-      <div
-        className="cgm"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close button */}
+      <div className="cgm" onClick={(event) => event.stopPropagation()}>
         <button className="cgm__close" onClick={onClose} aria-label="Close">
           <X size={18} />
         </button>
 
-        {/* Header */}
         <div className="cgm__head">
           <div className="cgm__icon">
             <Users size={22} />
@@ -59,7 +67,6 @@ const CreateGroupModal = ({ onClose, onCreated }) => {
           <p className="cgm__subtitle">Give your group a name to get started</p>
         </div>
 
-        {/* Form */}
         <form className="cgm__form" onSubmit={handleSubmit}>
           <div className="cgm__field">
             <label className="cgm__label" htmlFor="cgm-name">Group Name</label>
@@ -68,28 +75,32 @@ const CreateGroupModal = ({ onClose, onCreated }) => {
               ref={inputRef}
               className="cgm__input"
               type="text"
-              placeholder="e.g. Goa Trip, Flat Expenses…"
+              placeholder="e.g. Goa Trip, Flat Expenses"
               value={name}
-              onChange={(e) => { setName(e.target.value); setError(""); }}
+              onChange={(event) => { setName(event.target.value); setError(""); }}
               autoComplete="off"
             />
             {error && <p className="cgm__error">{error}</p>}
           </div>
 
+          <div className="cgm__field">
+            <label className="cgm__label" htmlFor="cgm-category">Category <span style={{ color: "var(--text-3)", fontWeight: 400 }}>(optional)</span></label>
+            <select
+              id="cgm-category"
+              className="cgm__select"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              {GROUP_CATEGORIES.map((c) => (
+                <option key={c.id} value={c.id}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="cgm__actions">
-            <button
-              type="button"
-              className="cgm__cancel"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="cgm__submit"
-              disabled={!name.trim() || loading}
-            >
-              {loading ? "Creating…" : "Create Group"}
+            <button type="button" className="cgm__cancel" onClick={onClose}>Cancel</button>
+            <button type="submit" className="cgm__submit" disabled={!name.trim() || loading}>
+              {loading ? "Creating..." : "Create Group"}
             </button>
           </div>
         </form>
@@ -98,32 +109,19 @@ const CreateGroupModal = ({ onClose, onCreated }) => {
   );
 };
 
-/* ─────────────────────────────────────────────────────────────── */
-/*  Groups Page                                                    */
-/* ─────────────────────────────────────────────────────────────── */
 const Groups = () => {
-  const [groups, setGroups]         = useState([]);
-  const [loading, setLoading]       = useState(true);
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
-  const [showModal, setShowModal]   = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // group object to delete
 
   const navigate = useNavigate();
   const location = useLocation();
   const { refresh } = useContext(SidebarContext);
+  const toast = useToast();
 
-  // Open modal when sidebar navigates to /groups?modal=new
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("modal") === "new") {
-      setShowModal(true);
-      // Clean up URL without triggering a re-render loop
-      navigate("/groups", { replace: true });
-    }
-  }, [location.search]);
-
-  useEffect(() => { fetchGroups(); }, []);
-
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getGroups();
@@ -134,28 +132,40 @@ const Groups = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleDelete = async (e, groupId) => {
-    e.stopPropagation();
-    if (!window.confirm("Delete this group? This cannot be undone.")) return;
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("modal") === "new") {
+      setShowModal(true);
+      navigate("/groups", { replace: true });
+    }
+  }, [location.search, navigate]);
+
+  useEffect(() => { fetchGroups(); }, [fetchGroups]);
+
+  const handleDeleteConfirmed = async () => {
+    if (!confirmDelete) return;
+    const groupId = confirmDelete.id;
     try {
       setDeletingId(groupId);
       await deleteGroup(groupId);
-      setGroups((prev) => prev.filter((g) => g.id !== groupId));
-      refresh();
+      setGroups((current) => current.filter((group) => group.id !== groupId));
+      await refresh();
+      toast.success(`"${confirmDelete.name}" deleted.`);
     } catch (err) {
-      console.error("Delete error:", err);
-      alert(err.response?.data?.detail || "Failed to delete group.");
+      toast.error(err?.response?.data?.detail || "Failed to delete group.");
     } finally {
       setDeletingId(null);
+      setConfirmDelete(null);
     }
   };
 
-  const handleGroupCreated = (newGroup) => {
+  const handleGroupCreated = async (newGroup) => {
     setShowModal(false);
-    setGroups((prev) => [newGroup, ...prev]);
-    refresh();
+    setGroups((current) => [newGroup, ...current]);
+    await refresh();
+    toast.success(`Group "${newGroup.name}" created!`);
   };
 
   const getAvatar = (name) => {
@@ -169,14 +179,11 @@ const Groups = () => {
   return (
     <div className="groups">
       <div className="groups__container">
-
-        {/* ── Header ────────────────────────────────────── */}
         <header className="groups__header">
           <div className="groups__header-left">
             <h1>My Groups</h1>
             <p>Manage your shared expenses and balances</p>
           </div>
-
           <div className="groups__header-actions">
             <button
               id="new-group-btn"
@@ -189,7 +196,6 @@ const Groups = () => {
           </div>
         </header>
 
-        {/* ── Stats ─────────────────────────────────────── */}
         {!loading && groups.length > 0 && (
           <div className="groups__stats">
             <div className="groups__stat">
@@ -197,35 +203,27 @@ const Groups = () => {
               <div className="groups__stat-label">Groups</div>
             </div>
             <div className="groups__stat">
-              <div className="groups__stat-value">
-                {groups.length > 0 ? "Active" : "—"}
-              </div>
+              <div className="groups__stat-value">{groups.length > 0 ? "Active" : "-"}</div>
               <div className="groups__stat-label">Status</div>
             </div>
           </div>
         )}
 
-        {/* ── Content ───────────────────────────────────── */}
         {loading ? (
           <div className="groups__loading">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="skeleton groups__skel" />
+            {[1, 2, 3].map((item) => (
+              <div key={item} className="skeleton groups__skel" />
             ))}
           </div>
-
         ) : groups.length === 0 ? (
           <div className="groups__empty">
-            <span className="groups__empty-icon">👥</span>
+            <span className="groups__empty-icon"><Users size={40} /></span>
             <h3>No groups yet</h3>
             <p>Create your first group to start splitting expenses</p>
-            <button
-              className="groups__create-btn"
-              onClick={() => setShowModal(true)}
-            >
+            <button className="groups__create-btn" onClick={() => setShowModal(true)}>
               <Plus size={16} /> Create your first group
             </button>
           </div>
-
         ) : (
           <div className="groups__grid">
             {groups.map((group) => (
@@ -235,19 +233,22 @@ const Groups = () => {
                 onClick={() => navigate(`/group/${group.id}`)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && navigate(`/group/${group.id}`)
-                }
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    navigate(`/group/${group.id}`);
+                  }
+                }}
               >
                 <div className="group-card__left">
-                  <div className="group-card__avatar">
-                    {getAvatar(group.name)}
-                  </div>
+                  <div className="group-card__avatar">{getAvatar(group.name)}</div>
                   <div className="group-card__info">
                     <div className="group-card__name">{group.name}</div>
                     <div className="group-card__meta">
-                      <span className="group-card__dot" />
-                      Active
+                      {group.category && CATEGORY_LABELS[group.category]
+                        ? <span className="group-card__category">{CATEGORY_LABELS[group.category]}</span>
+                        : <><span className="group-card__dot" /> Active</>
+                      }
                     </div>
                   </div>
                 </div>
@@ -255,14 +256,15 @@ const Groups = () => {
                 <div className="group-card__right">
                   <button
                     className="group-card__delete"
-                    onClick={(e) => handleDelete(e, group.id)}
+                    onClick={(event) => { event.stopPropagation(); setConfirmDelete(group); }}
                     disabled={deletingId === group.id}
                     aria-label={`Delete ${group.name}`}
                   >
-                    {deletingId === group.id
-                      ? <span style={{ fontSize: "10px" }}>…</span>
-                      : <Trash2 size={14} />
-                    }
+                    {deletingId === group.id ? (
+                      <span style={{ fontSize: "10px" }}>...</span>
+                    ) : (
+                      <Trash2 size={14} />
+                    )}
                   </button>
                   <ArrowRight size={18} className="group-card__arrow" />
                 </div>
@@ -272,13 +274,23 @@ const Groups = () => {
         )}
       </div>
 
-      {/* ── Create Group Modal ─────────────────────────── */}
       {showModal && (
         <CreateGroupModal
           onClose={() => setShowModal(false)}
           onCreated={handleGroupCreated}
         />
       )}
+
+      <ConfirmModal
+        open={!!confirmDelete}
+        title="Delete Group?"
+        message={`"${confirmDelete?.name}" and all its expenses will be permanently deleted. This cannot be undone.`}
+        confirmText="Delete Group"
+        variant="danger"
+        loading={!!deletingId}
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 };

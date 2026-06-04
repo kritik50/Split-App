@@ -1,4 +1,4 @@
-/* ─── Landing Page ───────────────────────────────────────────── */
+/* ─── Landing Page — Glacier Glassmorphism ───────────────────── */
 
 .landing {
   min-height: 100vh;
@@ -7,7 +7,7 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
-  background: var(--canvas);
+  background: var(--bg-base);
 }
 
 /* Background */
@@ -24,27 +24,30 @@
   filter: blur(100px);
 }
 
+/* Ice-blue primary orb — Glacier "Frozen Light" */
 .landing__orb--1 {
   width: 60vw; height: 60vw;
   max-width: 700px; max-height: 700px;
   top: -15%; left: -10%;
-  background: radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(125,211,252,0.18) 0%, transparent 70%);
   animation: drift 18s ease-in-out infinite alternate;
 }
 
+/* Lavender tertiary orb */
 .landing__orb--2 {
   width: 50vw; height: 50vw;
   max-width: 600px; max-height: 600px;
   bottom: -20%; right: -5%;
-  background: radial-gradient(circle, rgba(16,185,129,0.16) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(200,160,240,0.13) 0%, transparent 70%);
   animation: drift 24s ease-in-out infinite alternate-reverse;
 }
 
+/* Subtle mid ice glow */
 .landing__orb--3 {
   width: 30vw; height: 30vw;
   max-width: 400px; max-height: 400px;
   top: 40%; left: 40%;
-  background: radial-gradient(circle, rgba(244,63,94,0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(125,211,252,0.06) 0%, transparent 70%);
   animation: drift 15s ease-in-out infinite alternate;
 }
 
@@ -53,13 +56,13 @@
   to   { transform: translate(40px, 40px) scale(1.08); }
 }
 
-/* Grid overlay */
+/* Grid overlay — ice-blue tint */
 .landing__grid {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    linear-gradient(rgba(125,211,252,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125,211,252,0.04) 1px, transparent 1px);
   background-size: 56px 56px;
   mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, transparent 75%);
 }
@@ -80,10 +83,10 @@
   align-items: center;
   gap: 8px;
   padding: 7px 16px;
-  background: rgba(99,102,241,0.1);
-  border: 1px solid rgba(99,102,241,0.25);
+  background: rgba(125, 211, 252, 0.08);
+  border: 1px solid rgba(125, 211, 252, 0.20);
   border-radius: var(--r-full);
-  color: var(--brand-hover);
+  color: var(--primary);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -94,9 +97,9 @@
 
 .landing__badge-dot {
   width: 5px; height: 5px;
-  background: var(--brand);
+  background: var(--primary);
   border-radius: 50%;
-  box-shadow: 0 0 8px var(--brand);
+  box-shadow: 0 0 8px rgba(125, 211, 252, 0.8);
 }
 
 /* Hero */
@@ -107,7 +110,8 @@
   letter-spacing: -0.05em;
   line-height: 0.9;
   margin-bottom: 28px;
-  background: linear-gradient(160deg, #ffffff 0%, #c7c9d9 50%, #8587a0 100%);
+  /* Glacier frost gradient */
+  background: linear-gradient(160deg, #ffffff 0%, #c8eaff 40%, #7dd3fc 75%, #c8a0f0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -136,22 +140,24 @@
   align-items: center;
   gap: 10px;
   padding: 16px 36px;
-  background: var(--brand);
-  color: #ffffff;
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.25) 0%, rgba(125, 211, 252, 0.15) 100%);
+  border: 1px solid var(--primary-border);
+  color: var(--primary);
   font-size: 0.95rem;
   font-weight: 700;
-  border: none;
   border-radius: var(--r-full);
   cursor: pointer;
   transition: all var(--t-spring);
-  box-shadow: var(--shadow-brand);
+  box-shadow: 0 0 30px rgba(125, 211, 252, 0.10), var(--shadow-md);
   letter-spacing: 0.01em;
+  backdrop-filter: blur(8px);
 }
 
 .landing__btn-primary:hover {
-  background: var(--brand-hover);
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.38) 0%, rgba(125, 211, 252, 0.22) 100%);
+  border-color: rgba(125, 211, 252, 0.30);
   transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(99,102,241,0.5);
+  box-shadow: 0 0 50px rgba(125, 211, 252, 0.22), var(--shadow-brand);
 }
 
 .landing__btn-primary:active {
@@ -176,7 +182,7 @@
 .landing__btn-ghost:hover {
   border-color: var(--border-lg);
   color: var(--text-1);
-  background: var(--surface);
+  background: var(--primary-soft);
 }
 
 /* Feature pills */
@@ -190,12 +196,19 @@
 
 .landing__feat {
   padding: 8px 18px;
-  background: var(--surface);
+  background: var(--glass-1);
+  backdrop-filter: blur(var(--glass-blur-1));
   border: 1px solid var(--border);
   border-radius: var(--r-full);
   font-size: 0.8rem;
   color: var(--text-2);
   font-weight: 500;
+  transition: border-color var(--t-fast), color var(--t-fast);
+}
+
+.landing__feat:hover {
+  border-color: var(--primary-border);
+  color: var(--primary);
 }
 
 @media (max-width: 640px) {

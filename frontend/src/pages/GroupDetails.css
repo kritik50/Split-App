@@ -165,6 +165,28 @@
   border-radius: var(--r-full);
 }
 
+.gd__member-remove {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--t-fast);
+  margin-left: 2px;
+}
+.gd__member-chip:hover .gd__member-remove { opacity: 1; }
+.gd__member-remove:hover {
+  background: var(--red-soft);
+  border-color: rgba(255, 107, 107, 0.4);
+  color: var(--red);
+}
+
 /* ── Stats Grid ──────────────────────────────────────────────── */
 .gd__stats {
   display: grid;

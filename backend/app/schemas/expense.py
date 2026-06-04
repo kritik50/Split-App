@@ -17,6 +17,14 @@ class ExpenseCreate(BaseModel):
     notes: Optional[str] = None
 
 
+class ExpenseUpdate(BaseModel):
+    amount: float
+    paid_by: int
+    split_type: str = "equal"
+    splits: List[SplitUser]
+    notes: Optional[str] = None
+
+
 class SplitResponse(BaseModel):
     user_id: int
     amount: float

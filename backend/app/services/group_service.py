@@ -26,6 +26,7 @@ class GroupService:
     def create_group(db: Session, group_data: GroupCreate, user_id: int) -> Group:
         new_group = Group(
             name=group_data.name,
+            category=group_data.category,
             created_by=user_id
         )
         db.add(new_group)

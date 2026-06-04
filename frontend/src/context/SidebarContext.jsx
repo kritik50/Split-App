@@ -1,23 +1,26 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { AuthContext } from "./AuthContext";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { getSidebarData } from "../api/sidebarApi";
-
-export const SidebarContext = createContext();
+import { AuthContext } from "./AuthContext.js";
+import { SidebarContext } from "./SidebarContext.js";
 
 export const SidebarProvider = ({ children }) => {
   const { user } = useContext(AuthContext);
 
-  // ── UI state ─────────────────────────────────────────────────
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  // ── Data ─────────────────────────────────────────────────────
   const [sidebarData, setSidebarData] = useState(null);
-  const [loading, setLoading]         = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // ── Fetch whenever user changes ───────────────────────────────
+  const closeMobile = useCallback(() => {
+    setMobileOpen(false);
+  }, []);
+
   const refresh = useCallback(async () => {
-    if (!user) { setSidebarData(null); return; }
+    if (!user) {
+      setSidebarData(null);
+      return;
+    }
+
     try {
       setLoading(true);
       const res = await getSidebarData();
@@ -29,10 +32,9 @@ export const SidebarProvider = ({ children }) => {
     }
   }, [user]);
 
-  useEffect(() => { refresh(); }, [refresh]);
-
-  // Close mobile drawer on route change
-  const closeMobile = () => setMobileOpen(false);
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   return (
     <SidebarContext.Provider

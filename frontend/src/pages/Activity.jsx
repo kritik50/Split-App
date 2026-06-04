@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity as ActivityIcon } from "lucide-react";
+import { Activity as ActivityIcon, Receipt, CheckCircle2 } from "lucide-react";
 
 import { getUserActivity } from "../api/userApi";
 import "./Activity.css";
@@ -25,7 +25,10 @@ const Activity = () => {
       try {
         setLoading(true);
         const res = await getUserActivity();
-        setItems(res.data || []);
+        const sorted = (res.data || []).sort(
+          (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+        );
+        setItems(sorted);
       } catch (err) {
         console.error("Failed to fetch activity:", err);
         setError("Could not load recent activity.");
@@ -47,7 +50,7 @@ const Activity = () => {
 
         {loading ? (
           <div className="activity-page__list">
-            {[1, 2, 3].map((item) => (
+            {[1, 2, 3, 4].map((item) => (
               <div key={item} className="skeleton activity-page__skeleton" />
             ))}
           </div>
@@ -61,22 +64,37 @@ const Activity = () => {
           </div>
         ) : (
           <div className="activity-page__list">
-            {items.map((item) => (
-              <article key={`${item.type}-${item.id}`} className="activity-page__card">
-                <div className="activity-page__top">
-                  <div>
+            {items.map((item) => {
+              const isExpense    = item.type === "expense";
+              const isSettlement = item.type === "settlement";
+              const Icon = isExpense ? Receipt : CheckCircle2;
+
+              return (
+                <article
+                  key={`${item.type}-${item.id}`}
+                  className={`activity-page__card activity-page__card--${item.type}`}
+                >
+                  <div className={`activity-page__icon-wrap activity-page__icon-wrap--${item.type}`}>
+                    <Icon size={15} />
+                  </div>
+
+                  <div className="activity-page__body">
                     <div className="activity-page__group">{item.group_name || `Group ${item.group_id}`}</div>
                     <h3>
-                      {item.type === "expense"
-                        ? `${item.paid_by} added ${item.notes || "an expense"}`
-                        : `${item.paid_by} settled up with ${item.paid_to}`}
+                      {isExpense
+                        ? <><strong>{item.paid_by}</strong> added <em>"{item.notes || "an expense"}"</em></>
+                        : <><strong>{item.paid_by}</strong> settled with <strong>{item.paid_to}</strong></>
+                      }
                     </h3>
+                    <div className="activity-page__meta">{formatDate(item.created_at)}</div>
                   </div>
-                  <div className="activity-page__amount">Rs{Number(item.amount || 0).toFixed(2)}</div>
-                </div>
-                <div className="activity-page__meta">{formatDate(item.created_at)}</div>
-              </article>
-            ))}
+
+                  <div className={`activity-page__amount activity-page__amount--${item.type}`}>
+                    ₹{Number(item.amount || 0).toFixed(2)}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </div>

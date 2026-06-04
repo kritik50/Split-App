@@ -1,11 +1,11 @@
-/* ─── Auth Page ──────────────────────────────────────────────── */
+/* ─── Auth Page — Glacier Glassmorphism ──────────────────────── */
 
 .auth {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--canvas);
+  background: var(--bg-base);
   position: relative;
   overflow: hidden;
   padding: 24px;
@@ -21,31 +21,33 @@
 .auth__orb--1 {
   width: 55vw; height: 55vw; max-width: 600px;
   top: -20%; left: -10%;
-  background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(125,211,252,0.14) 0%, transparent 70%);
   animation: drift 20s ease-in-out infinite alternate;
 }
 .auth__orb--2 {
   width: 45vw; height: 45vw; max-width: 500px;
   bottom: -20%; right: -10%;
-  background: radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(200,160,240,0.10) 0%, transparent 70%);
   animation: drift 26s ease-in-out infinite alternate-reverse;
 }
 
-/* Card */
+/* Card — frosted glass */
 .auth__card {
   position: relative;
   z-index: 10;
   width: 100%;
   max-width: 400px;
-  background: var(--surface);
+  background: var(--glass-2);
+  backdrop-filter: blur(var(--glass-blur-2));
+  -webkit-backdrop-filter: blur(var(--glass-blur-2));
   border: 1px solid var(--border-md);
   border-radius: var(--r-2xl);
   padding: 40px 36px;
-  box-shadow: var(--shadow-xl), inset 0 1px 0 rgba(255,255,255,0.06);
+  box-shadow: var(--shadow-xl), 0 0 60px rgba(125, 211, 252, 0.06);
   animation: scaleIn 0.45s var(--t-spring) backwards;
 }
 
-/* Top glow accent */
+/* Top glow line */
 .auth__card::before {
   content: '';
   position: absolute;
@@ -53,7 +55,8 @@
   transform: translateX(-50%);
   width: 60%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--brand), transparent);
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0.6;
 }
 
 /* Header */
@@ -77,9 +80,9 @@
 
 .auth__logo-dot {
   width: 7px; height: 7px;
-  background: var(--green);
+  background: var(--primary);
   border-radius: 50%;
-  box-shadow: 0 0 10px var(--green);
+  box-shadow: 0 0 10px rgba(125, 211, 252, 0.8);
 }
 
 .auth__tagline {
@@ -92,7 +95,7 @@
 .auth__tabs {
   display: flex;
   padding: 4px;
-  background: var(--surface-2);
+  background: rgba(15, 21, 36, 0.60);
   border: 1px solid var(--border);
   border-radius: var(--r-full);
   margin-bottom: 28px;
@@ -103,11 +106,11 @@
   position: absolute;
   top: 4px; bottom: 4px;
   width: calc(50% - 4px);
-  background: var(--surface-3);
-  border: 1px solid var(--border-md);
+  background: rgba(125, 211, 252, 0.10);
+  border: 1px solid var(--primary-border);
   border-radius: var(--r-full);
   transition: transform var(--t-mid);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 0 12px rgba(125, 211, 252, 0.08);
 }
 .auth__tab-slider--right { transform: translateX(100%); }
 
@@ -125,13 +128,29 @@
   transition: color var(--t-fast);
   border-radius: var(--r-full);
 }
-.auth__tab-btn--active { color: var(--text-1); }
+.auth__tab-btn--active { color: var(--primary); }
 
 /* Form */
 .auth__form {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+/* Success banner */
+.auth__success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--r-md);
+  color: #6ee7b7;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+  animation: slideDown 0.3s var(--t-spring) both;
 }
 
 /* Name field slide */
@@ -165,7 +184,7 @@
 
 .auth__input {
   width: 100%;
-  background: var(--surface-2);
+  background: rgba(15, 21, 36, 0.60);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 13px 14px 13px 42px;
@@ -181,13 +200,13 @@
 }
 
 .auth__input:focus {
-  border-color: var(--brand);
-  background: var(--surface-3);
-  box-shadow: 0 0 0 3px var(--brand-soft);
+  border-color: rgba(125, 211, 252, 0.35);
+  background: rgba(15, 21, 36, 0.80);
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.08), 0 0 20px rgba(125, 211, 252, 0.05);
 }
 
 .auth__field:focus-within .auth__field-icon {
-  color: var(--brand-hover);
+  color: var(--primary);
 }
 
 /* Submit */
@@ -195,11 +214,11 @@
   margin-top: 8px;
   width: 100%;
   padding: 14px;
-  background: var(--brand);
-  color: #fff;
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.25) 0%, rgba(125, 211, 252, 0.15) 100%);
+  border: 1px solid var(--primary-border);
+  color: var(--primary);
   font-size: 0.92rem;
   font-weight: 700;
-  border: none;
   border-radius: var(--r-md);
   cursor: pointer;
   transition: all var(--t-spring);
@@ -208,13 +227,14 @@
   justify-content: center;
   gap: 8px;
   letter-spacing: 0.01em;
-  box-shadow: var(--shadow-brand);
+  box-shadow: 0 0 24px rgba(125, 211, 252, 0.08);
 }
 
 .auth__submit:hover {
-  background: var(--brand-hover);
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.38) 0%, rgba(125, 211, 252, 0.22) 100%);
+  border-color: rgba(125, 211, 252, 0.30);
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(99,102,241,0.45);
+  box-shadow: 0 0 40px rgba(125, 211, 252, 0.20), var(--shadow-brand);
 }
 
 .auth__submit:active {

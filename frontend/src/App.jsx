@@ -1,20 +1,22 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useContext } from "react";
+import "./App.css";
 
-import Groups       from "./pages/Groups";
-import GroupDetails from "./pages/GroupDetails";
-// CreateGroup is now a modal inside Groups.jsx
-import AddExpense   from "./pages/AddExpense";
-import AppLayout    from "./components/AppLayout";
+import Groups        from "./pages/Groups";
+import GroupDetails  from "./pages/GroupDetails";
+import AddExpense    from "./pages/AddExpense";
+import AppLayout     from "./components/AppLayout";
+import ErrorBoundary from "./components/ErrorBoundary";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Landing      from "./pages/Landing";
-import Auth         from "./pages/Auth";
-import AllExpenses  from "./pages/AllExpenses";
-import Balances     from "./pages/Balances";
-import Activity     from "./pages/Activity";
+import Landing       from "./pages/Landing";
+import Auth          from "./pages/Auth";
+import AllExpenses   from "./pages/AllExpenses";
+import Balances      from "./pages/Balances";
+import Activity      from "./pages/Activity";
+import NotFound      from "./pages/NotFound";
 
-import { AuthContext }      from "./context/AuthContext";
-import { SidebarProvider }  from "./context/SidebarContext";
+import { AuthContext }      from "./context/AuthContext.js";
+import { SidebarProvider }  from "./context/SidebarContext.jsx";
 
 // ── Pages that use the sidebar layout ───────────────────────────
 const PUBLIC_PATHS = ["/", "/login", "/register"];
@@ -52,21 +54,24 @@ function AppContent() {
       {/* /create-group removed — now a modal on the Groups page */}
 
       {/* 404 */}
-      <Route path="*" element={<Landing />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 
   return (
     <>
-      {/* Authenticated layout: sidebar + content */}
       {showSidebar ? (
         <SidebarProvider>
           <AppLayout>
-            {routeTree}
+            <ErrorBoundary resetKey={location.pathname}>
+              {routeTree}
+            </ErrorBoundary>
           </AppLayout>
         </SidebarProvider>
       ) : (
-        routeTree
+        <ErrorBoundary resetKey={location.pathname}>
+          {routeTree}
+        </ErrorBoundary>
       )}
     </>
   );

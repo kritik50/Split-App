@@ -6,7 +6,7 @@ from app.models.expense import Expense
 from app.models.expense_split import ExpenseSplit
 from app.models.group_member import GroupMember
 from app.services.balance_service import update_balance
-from app.schemas.expense import ExpenseCreate
+from app.schemas.expense import ExpenseCreate, ExpenseUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -153,6 +153,91 @@ class ExpenseService:
             })
 
         return result
+
+    @staticmethod
+    def update_expense(db: Session, expense_id: int, data: ExpenseUpdate, current_user_id: int) -> dict:
+        expense = db.query(Expense).options(joinedload(Expense.splits)).filter(Expense.id == expense_id).first()
+
+        if not expense:
+            raise HTTPException(status_code=404, detail="Expense not found")
+
+        member = db.query(GroupMember).filter(
+            GroupMember.group_id == expense.group_id,
+            GroupMember.user_id == current_user_id
+        ).first()
+
+        if not member:
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        if data.amount <= 0:
+            raise HTTPException(status_code=400, detail="Invalid amount")
+
+        # ── Step 1: Reverse old balance splits ──────────────────────
+        old_splits = db.query(ExpenseSplit).filter(ExpenseSplit.expense_id == expense_id).all()
+        for s in old_splits:
+            update_balance(
+                db=db,
+                group_id=expense.group_id,
+                payer_id=s.user_id,
+                participant_id=expense.paid_by,
+                amount=s.amount
+            )
+
+        # ── Step 2: Delete old splits ────────────────────────────────
+        db.query(ExpenseSplit).filter(ExpenseSplit.expense_id == expense_id).delete()
+
+        # ── Step 3: Compute new split amounts ────────────────────────
+        split_type = (data.split_type or "equal").lower()
+        split_payloads = list(data.splits)
+
+        if not split_payloads:
+            raise HTTPException(status_code=400, detail="Splits cannot be empty")
+
+        if split_type == "equal":
+            share_values = ExpenseService._rounded_share(
+                data.amount,
+                [data.amount / len(split_payloads)] * len(split_payloads)
+            )
+        elif split_type == "exact":
+            total_split = round(sum(s.amount or 0 for s in split_payloads), 2)
+            if abs(total_split - round(data.amount, 2)) > 0.01:
+                raise HTTPException(status_code=400, detail="Exact split amounts must add up to the total")
+            share_values = [round(s.amount or 0, 2) for s in split_payloads]
+        elif split_type == "percentage":
+            total_pct = round(sum(s.percentage or 0 for s in split_payloads), 2)
+            if abs(total_pct - 100) > 0.01:
+                raise HTTPException(status_code=400, detail="Percentages must add up to 100")
+            share_values = ExpenseService._rounded_share(
+                data.amount,
+                [(data.amount * (s.percentage or 0)) / 100 for s in split_payloads]
+            )
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported split type")
+
+        # ── Step 4: Update expense record ────────────────────────────
+        expense.amount = data.amount
+        expense.paid_by = data.paid_by
+        expense.notes = data.notes
+        db.commit()
+        db.refresh(expense)
+
+        # ── Step 5: Create new splits & update balances ──────────────
+        for split_data, share_amount in zip(split_payloads, share_values):
+            db.add(ExpenseSplit(
+                expense_id=expense.id,
+                user_id=split_data.user_id,
+                amount=share_amount
+            ))
+            update_balance(
+                db=db,
+                group_id=expense.group_id,
+                payer_id=data.paid_by,
+                participant_id=split_data.user_id,
+                amount=share_amount
+            )
+
+        db.commit()
+        return {"message": "Expense updated successfully", "expense_id": expense.id}
 
     @staticmethod
     def delete_expense(db: Session, expense_id: int, current_user_id: int) -> dict:

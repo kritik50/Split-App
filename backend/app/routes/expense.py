@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from database import get_db
-from app.schemas.expense import ExpenseCreate
+from app.schemas.expense import ExpenseCreate, ExpenseUpdate
 from app.dependencies.auth import get_current_user
 from app.services.expense_service import ExpenseService
 
@@ -27,6 +27,16 @@ def get_group_expenses(
     current_user=Depends(get_current_user)
 ):
     return ExpenseService.get_group_expenses(db, group_id, current_user.id)
+
+
+@router.put("/{expense_id}")
+def update_expense(
+    expense_id: int,
+    data: ExpenseUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    return ExpenseService.update_expense(db, expense_id, data, current_user.id)
 
 
 @router.delete("/{expense_id}")
